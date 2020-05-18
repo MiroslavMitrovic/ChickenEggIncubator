@@ -1,0 +1,8 @@
+functions.c:17:5:PID_control	32	static
+functions.c:48:6:kontrola_grejac	16	static
+functions.c:60:10:DHT12_ocitavanje	24	static
+functions.c:92:6:getTime_DS3231	40	static
+functions.c:110:6:setTime_DS3231	48	static
+functions.c:125:9:dectohex	16	static
+functions.c:132:5:hextodec	16	static
+functions.c:139:5:find_I2C_deviceAddress	24	static
