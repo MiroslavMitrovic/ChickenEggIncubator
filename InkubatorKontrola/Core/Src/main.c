@@ -27,7 +27,8 @@
 #include "variables.h"
 #include "functions.h"
 #include  <stdbool.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,9 +38,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SETPOINT_TEMP 									39 //zeljena temperatura
-#define SETPOINT_HUM  									60 //zeljena vlaznost
-#define DHT12_ADDRESS_I2C 								0xB8//ADRESA DHT12 SENZORA
+#define SETPOINT_TEMP 									39 		//zeljena temperatura
+#define SETPOINT_HUM  									60 		//zeljena vlaznost
+#define DHT12_ADDRESS_I2C 								0xB8	//ADRESA DHT12 SENZORA
+#define DS3231_ADDRESS_I2C								0xD0	//ADRESA DS3231 RTC
 
 /* USER CODE END PD */
 
@@ -60,7 +62,9 @@ TIM_HandleTypeDef htim5;
 float Kp=203.00;			//Kp PID kontrolera
 float Ki=7.2;				//Ki PID kontrolera
 float Kd=1.04;				//Kd PID kontrolera
+char lcd_string[100];		//string za ispisivanje  na LCD
 
+TIME time; //object struct u koji se upisuju podaci iz stringa
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,10 +93,10 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int PidKorekcija=0;
 	float StvarnaTemperatura=0.0;
-	double* RHTptr;
+	double * RHTptr;
 	double RH_value, T_value;
-
-
+	char * strptr;
+	strptr=lcd_string;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -121,17 +125,38 @@ int main(void)
 HAL_TIM_Base_Start_IT(&htim2);
 HAL_TIM_Base_Start_IT(&htim5);
 
-
+lcd_init ();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  RHTptr =DHT12_ocitavanje(&hi2c1, DHT12_ADDRESS_I2C);
-	  if(RHTptr==(double*)-1)
+	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+
+	  sprintf(lcd_string,"Time:%02d:%02d:%02d",time.hours, time.minutes,time.seconds); //string koji ispisuje vreme
+	  lcd_put_cur(0,0);
+	  lcd_send_string(lcd_string);
+	  while(*(strptr++) !='\0')
+	  	  {
+	  		  *(strptr++)=0;
+	  	  }
+	  lcd_put_cur(1,0);
+	  sprintf(lcd_string,"Date:%02d-%02d-20%02d",time.day, time.month,time.year);	//string koji ispisuje datum
+
+
+	  RHTptr =DHT12_ocitavanje(DHT12_ADDRESS_I2C);
+	  if(RHTptr==(double*)-1) //greska prilikom ucitavanja
 	  {
-		  //Error!
+
+		  while(*(strptr++) !='\0')
+		  	  	  {
+		  	  		  *(strptr++)=0;
+		  	  	  }
+		  lcd_clear();
+		  lcd_put_cur(0, 0);
+		  sprintf(lcd_string,"Greska!");
+		  lcd_send_string(lcd_string);//Error!
 	  }
 	  RH_value=*(RHTptr);
 	  T_value=*(RHTptr+1);
@@ -141,9 +166,32 @@ HAL_TIM_Base_Start_IT(&htim5);
 	 	 {
 	 		 kontrola_grejac(PidKorekcija);
 	 	 }
-	  if(RH_value>60)
+	  if(RH_value>=70)
 	  {
-		  //TURN ON FAN
+		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET); //ukljuci ventilator
+	  }
+	  else if(RH_value<65)
+	  {
+		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//iskljuci ventilator
+	  }
+	  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
+	  {
+
+		  		  while(*(strptr++) !='\0')
+		  		  	  	  {
+		  		  	  		  *(strptr++)=0;
+		  		  	  	  }
+		  		  	  	  lcd_clear();
+		  				  lcd_put_cur(0, 0);
+		  				  sprintf(lcd_string,"T=%2.1f[degC]",T_value);
+		  				while(*(strptr++) !='\0')
+		  					{
+		  					  *(strptr++)=0;
+		  					}
+		  					lcd_put_cur(1, 0);
+		  					sprintf(lcd_string,"RH=%2.1f[degC]",RH_value);
+		  					delay_ms(2000);
+
 	  }
     /* USER CODE END WHILE */
 
@@ -380,7 +428,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, StepperMotorPin4_Pin|StepperMotorPin3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, FanPin_Pin|StepperMotorPin4_Pin|StepperMotorPin3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin 
@@ -422,11 +470,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
   HAL_GPIO_Init(I2S3_WS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BOOT1_Pin */
-  GPIO_InitStruct.Pin = BOOT1_Pin;
+  /*Configure GPIO pins : BOOT1_Pin ShowTempPin_Pin */
+  GPIO_InitStruct.Pin = BOOT1_Pin|ShowTempPin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CLK_IN_Pin */
   GPIO_InitStruct.Pin = CLK_IN_Pin;
@@ -436,8 +484,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(CLK_IN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : StepperMotorPin4_Pin StepperMotorPin3_Pin */
-  GPIO_InitStruct.Pin = StepperMotorPin4_Pin|StepperMotorPin3_Pin;
+  /*Configure GPIO pins : FanPin_Pin StepperMotorPin4_Pin StepperMotorPin3_Pin */
+  GPIO_InitStruct.Pin = FanPin_Pin|StepperMotorPin4_Pin|StepperMotorPin3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

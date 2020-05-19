@@ -86,6 +86,10 @@ void Error_Handler(void);
 #define BOOT1_GPIO_Port GPIOB
 #define CLK_IN_Pin GPIO_PIN_10
 #define CLK_IN_GPIO_Port GPIOB
+#define ShowTempPin_Pin GPIO_PIN_12
+#define ShowTempPin_GPIO_Port GPIOB
+#define FanPin_Pin GPIO_PIN_13
+#define FanPin_GPIO_Port GPIOB
 #define StepperMotorPin4_Pin GPIO_PIN_14
 #define StepperMotorPin4_GPIO_Port GPIOB
 #define StepperMotorPin3_Pin GPIO_PIN_15

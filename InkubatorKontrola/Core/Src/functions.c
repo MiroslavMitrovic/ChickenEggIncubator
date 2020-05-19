@@ -9,6 +9,10 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
+#define LCD_I2C_SLAVE_ADDRESS 0x7E 						//adresa i2c interfejsa za LCD
+extern TIME time;
+extern I2C_HandleTypeDef hi2c1; 						//stavi hi2c koji koristis
+
 
 /*----------------------------------------------------------------------------------------------------------------------
  * Funkcija za PID kontrolu grejaca inkubatora, vraca vrednost greske koja se koristi za prepravku  vrednosti kasnjenja
@@ -57,13 +61,13 @@ void kontrola_grejac(int PID_Greska)
  * Funkcija koja vrsi ocitavanje temperature i vlaznosti vazduha putem i2c Bus-a i vraca dbl* na niz gde su vrednosti
  * Temperature i Relativne vlaznosti vazduha skladistene
  * -----------------------------------------------------------------------------------------------------------------------*/
-double * DHT12_ocitavanje(I2C_HandleTypeDef* i2c,int DHT12_address)
+double * DHT12_ocitavanje(int DHT12_address)
 {
 
 
 	data[0]=0x00;//pocetna adresa
-	HAL_I2C_Master_Transmit(i2c,DHT12_address,data,1,10);
-	HAL_I2C_Master_Receive(i2c,DHT12_address,&data[1],5,10);
+	HAL_I2C_Master_Transmit(&hi2c1,DHT12_address,data,1,10);
+	HAL_I2C_Master_Receive(&hi2c1,DHT12_address,&data[1],5,10);
 	RH_int=data[1];
 	RH_dec=data[2];
 	T_int=data[3];
@@ -89,11 +93,11 @@ double * DHT12_ocitavanje(I2C_HandleTypeDef* i2c,int DHT12_address)
  * Funkcija koja vadi vreme preko i2c interfejsa i upisuje isti u struct time.
  *
  *--------------------------------------------------------------------------------*/
-void getTime_DS3231(I2C_HandleTypeDef* i2c,int DS3231_I2C_address)
+void getTimeDate_DS3231(int DS3231_I2C_address)
 {
 	uint8_t get_time[7];
 
-	HAL_I2C_Mem_Read(i2c,DS3231_I2C_address,0x00,1,get_time,7,1000);
+	HAL_I2C_Mem_Read(&hi2c1,DS3231_I2C_address,0x00,1,get_time,7,1000);
 
 	time.seconds=hextodec(get_time[0]);
 	time.minutes=hextodec(get_time[1]);
@@ -107,7 +111,7 @@ void getTime_DS3231(I2C_HandleTypeDef* i2c,int DS3231_I2C_address)
  * Funkcija koja setuje vreme na DS3231 RTC modulu preko i2c interfejsa
  *
  *--------------------------------------------------------------------------------*/
-void setTime_DS3231(I2C_HandleTypeDef* i2c,int DS3231_I2C_address,uint8_t sec, uint8_t min, uint8_t hours, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year)
+void setTime_DS3231(int DS3231_I2C_address,uint8_t sec, uint8_t min, uint8_t hours, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year)
 {
 	uint8_t set_time[7];
 	set_time[0]=dectohex(sec);
@@ -117,7 +121,7 @@ void setTime_DS3231(I2C_HandleTypeDef* i2c,int DS3231_I2C_address,uint8_t sec, u
 	set_time[4]=dectohex(dom);
 	set_time[5]=dectohex(month);
 	set_time[6]=dectohex(year);
-	HAL_I2C_Mem_Write(i2c,DS3231_I2C_address,0x00,1,set_time,7,1000);
+	HAL_I2C_Mem_Write(&hi2c1,DS3231_I2C_address,0x00,1,set_time,7,1000);
 }
 /*-----------------------------------------------------------------------------
  *Funkcija koja vrsi konverziju iz decimalnih brojeva u hex brojeve
@@ -136,12 +140,12 @@ int hextodec(uint8_t val)
 /*-----------------------------------------------------------------------------
  * funkcija koja trazi adresu uredjaja na I2C magistrali i vraca vrednost adrese
  * ---------------------------------------------------------------------------*/
-int find_I2C_deviceAddress(I2C_HandleTypeDef* i2c)
+int find_I2C_deviceAddress(void)
 {
 	int i=0;
 	for(i=0;i<255;i++)
 	{
-		if(HAL_I2C_IsDeviceReady(i2c,i,1,10)==HAL_OK)
+		if(HAL_I2C_IsDeviceReady(&hi2c1,i,1,10)==HAL_OK)
 		{
 			return i;
 			break;
@@ -149,7 +153,101 @@ int find_I2C_deviceAddress(I2C_HandleTypeDef* i2c)
 	}
 	return -1;//greska
 }
+/*-----------------------------------------------------------------------------
+ * funkcija koja salje komandu na LCD kontroler putem i2c BUS-a
+ * ---------------------------------------------------------------------------*/
+void lcd_send_cmd (char cmd)
+{
+  char data_u, data_l;
+	uint8_t data_t[4];
+	data_u = (cmd&0xf0);      //4BIT HI
+	data_l = ((cmd<<4)&0xf0); //4BIT LO
+	data_t[0] = data_u|0x0C;  //en=1, rs=0
+	data_t[1] = data_u|0x08;  //en=0, rs=0
+	data_t[2] = data_l|0x0C;  //en=1, rs=0
+	data_t[3] = data_l|0x08;  //en=0, rs=0
+	HAL_I2C_Master_Transmit (&hi2c1,LCD_I2C_SLAVE_ADDRESS,(uint8_t *) data_t, 4, 100);
+}
+/*-----------------------------------------------------------------------------
+ * funkcija koja salje podatke na LCD kontroler putem i2c BUS-a
+ * ---------------------------------------------------------------------------*/
+void lcd_send_data (char data)
+{
+	char data_u, data_l;
+	uint8_t data_t[4];
+	data_u = (data&0xf0);
+	data_l = ((data<<4)&0xf0);
+	data_t[0] = data_u|0x0D;  	//en=1, rs=0
+	data_t[1] = data_u|0x09;  	//en=0, rs=0
+	data_t[2] = data_l|0x0D;  	//en=1, rs=0
+	data_t[3] = data_l|0x09;  	//en=0, rs=0
+	HAL_I2C_Master_Transmit (&hi2c1, LCD_I2C_SLAVE_ADDRESS,(uint8_t *) data_t, 4, 100);
+}
+/*-----------------------------------------------------------------------------
+ * funkcija koja brise sve podatke i CGRAM-a LCD kontroler putem i2c BUS-a
+ * ---------------------------------------------------------------------------*/
+void lcd_clear (void)
+{
+	lcd_send_cmd(0x01);
+	//lcd_send_cmd (0x80);
+	/*for (int i=0; i<70; i++)
+	{
+		lcd_send_data (' ');
+	}
+	*/
+}
+/*-----------------------------------------------------------------------------
+ * funkcija koja setuje poziciju cursora na ekranu
+ * ---------------------------------------------------------------------------*/
+void lcd_put_cur(int row, int col)
+{
+    switch (row)
+    {
+        case 0:
+            col |= 0x80;
+            break;
+        case 1:
+            col |= 0xC0;
+            break;
+    }
 
+    lcd_send_cmd (col);
+}
+/*-----------------------------------------------------------------------------
+ * Inicijalizacija samog LCD-a
+ * ---------------------------------------------------------------------------*/
+void lcd_init (void)
+{
+	// 4 BIT inicijalizacija
+	HAL_Delay(50);  // cekaj >40ms
+	lcd_send_cmd (0x30);
+	HAL_Delay(5);  // cekaj >4.1ms
+	lcd_send_cmd (0x30);
+	HAL_Delay(1);  // cekaj  >100us
+	lcd_send_cmd (0x30);
+	HAL_Delay(10);
+	lcd_send_cmd (0x20);  // 4bit mod
+	HAL_Delay(10);
+
+  // inicijalizacija displeja
+	lcd_send_cmd (0x28); // Function set --> DL=0 (4 bit mode), N = 1 (2 line display) F = 0 (5x8 characters)
+	HAL_Delay(1);
+	lcd_send_cmd (0x08); //Display on/off control --> D=0 display,C=0 cursor, B=0 blink  ---> display OFF, blink OFF, cursor OFF
+	HAL_Delay(1);
+	lcd_send_cmd (0x01);  // clear display
+	HAL_Delay(1);
+	HAL_Delay(1);
+	lcd_send_cmd (0x06); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
+	HAL_Delay(1);
+	lcd_send_cmd (0x0C); //Display on/off control --> D = 1, C and B = 0. (Cursor OFF ,blink OFF
+}
+/*-----------------------------------------------------------------------------
+ * Funkcija koja salje ceo string
+ * ---------------------------------------------------------------------------*/
+void lcd_send_string (char *str)
+{
+	while (*str) lcd_send_data (*str++);
+}
 
 
 

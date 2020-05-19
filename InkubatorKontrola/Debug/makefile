@@ -40,8 +40,8 @@ InkubatorKontrola.bin \
 all: InkubatorKontrola.elf secondary-outputs
 
 # Tool invocations
-InkubatorKontrola.elf: $(OBJS) $(USER_OBJS) /home/miki/git/ChickenEggIncubator/InkubatorKontrola/STM32F407VGTX_FLASH.ld
-	arm-none-eabi-gcc -o "InkubatorKontrola.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/miki/git/ChickenEggIncubator/InkubatorKontrola/STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="InkubatorKontrola.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+InkubatorKontrola.elf: $(OBJS) $(USER_OBJS) /home/miki/gitprojects/ChickenEggIncubator/InkubatorKontrola/STM32F407VGTX_FLASH.ld
+	arm-none-eabi-gcc -o "InkubatorKontrola.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/miki/gitprojects/ChickenEggIncubator/InkubatorKontrola/STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="InkubatorKontrola.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
