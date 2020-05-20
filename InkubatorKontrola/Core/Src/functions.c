@@ -85,7 +85,7 @@ double * DHT12_ocitavanje(int DHT12_address)
 	}
 	else
 	{
-		return (double*)-1;
+		return  NULL;
 	}
 
 }
@@ -197,7 +197,7 @@ void lcd_clear (void)
 	*/
 }
 /*-----------------------------------------------------------------------------
- * funkcija koja setuje poziciju cursora na ekranu
+ * funkcija koja setuje poziciju cursora na LCD ekranu
  * ---------------------------------------------------------------------------*/
 void lcd_put_cur(int row, int col)
 {

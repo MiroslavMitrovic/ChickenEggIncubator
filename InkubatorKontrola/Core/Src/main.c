@@ -29,6 +29,7 @@
 #include  <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +40,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SETPOINT_TEMP 									39 		//zeljena temperatura
-#define SETPOINT_HUM  									60 		//zeljena vlaznost
+#define SETPOINT_HUM  									65 		//zeljena vlaznost
 #define DHT12_ADDRESS_I2C 								0xB8	//ADRESA DHT12 SENZORA
 #define DS3231_ADDRESS_I2C								0xD0	//ADRESA DS3231 RTC
 
@@ -146,7 +147,7 @@ lcd_init ();
 
 
 	  RHTptr =DHT12_ocitavanje(DHT12_ADDRESS_I2C);
-	  if(RHTptr==(double*)-1) //greska prilikom ucitavanja
+	  if(RHTptr== NULL) //greska prilikom ucitavanja
 	  {
 
 		  while(*(strptr++) !='\0')
@@ -174,8 +175,29 @@ lcd_init ();
 	  {
 		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//iskljuci ventilator
 	  }
+	  else if (RH_value<50)
+	  {
+		  while(*(strptr++) !='\0')
+		  {
+		  	 *(strptr++)=0;
+		   }
+		    lcd_clear();
+		    lcd_put_cur(0, 0);
+		    strcpy(lcd_string,"Niska vlaznost!");
+		    lcd_send_string(strptr);
+		    while(*(strptr++) !='\0')
+		    		  {
+		    		  	 *(strptr++)=0;
+		    		   }
+		    lcd_put_cur(1, 0);
+		    strcpy(lcd_string,"Niska vlaznost!");
+		    lcd_send_string(strptr);
+	  }
 	  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
 	  {
+		  delay_ms(40);
+		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET)
+		  {
 
 		  		  while(*(strptr++) !='\0')
 		  		  	  	  {
@@ -189,9 +211,9 @@ lcd_init ();
 		  					  *(strptr++)=0;
 		  					}
 		  					lcd_put_cur(1, 0);
-		  					sprintf(lcd_string,"RH=%2.1f[degC]",RH_value);
+		  					sprintf(lcd_string,"RH=%2.1f[%]",RH_value);
 		  					delay_ms(2000);
-
+		  }
 	  }
     /* USER CODE END WHILE */
 
