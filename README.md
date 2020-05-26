@@ -13,7 +13,8 @@ incubation process time. For this intention LCD1602 Display was used. Communicat
 ### Main MCU choice 
 - For this application stm32f407vgt6 MCU was chosen as a part of STM Discovery development board.
 ### Versioning implemented
-To prevent overwriting the code and accidental loss of code version controlling is implemented also via Git. 
-Future development can include adding precise amounts of water via an injection nozzle to achieve precise requested
+- To prevent overwriting the code and accidental loss of code version controlling is implemented also via Git.
+### Future development possibilities
+- Future development can include adding precise amounts of water via an injection nozzle to achieve precise requested
 humidity values. When this is implemented one can make easy corrections to control parameters for other types of eggs, not just
 poultry ones. Later option can be added that user can choose which eggs he wants to hatch inside of the incubator. 
