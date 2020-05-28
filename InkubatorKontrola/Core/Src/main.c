@@ -100,6 +100,7 @@ int main(void)
 	strptr=lcd_string;
 	uint8_t startDay,startMonth; 										//dan i mesec pocetka procesa inkubacije
 	uint8_t currentDay,currentMonth,currentTime,prevousTime;			//trenutni dan i mesec u toku inkubacije
+	bool hourSts=true;
 
   /* USER CODE END 1 */
 
@@ -228,15 +229,26 @@ prevousTime=0;
 	  /*Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije */
 	  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 	  {
-		  //dodati if uslov za aktivaciju u slucaju razlike od 1h
-		  stepperMotorControlFD(5);
-	  };
+		  if(hourSts) //check uslov za prvu inicijalizaciju prev time
+		  {
+			  prevousTime=currentTime;
+			  hourSts=false;
+		  }
+		  else if(prevousTime != currentTime) //ukoliko se razlikuju, doslo je do promene sata i potrebno je jaja okrenuti
+		  {
+			  stepperMotorControlFD(5);		//okrece jaja
+			  hourSts=true;					//daje uslov kako bi se promenio previous value
+		  }
+
+
+		  };
+	   };
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
 }
+  /* USER CODE END 3 */
+
 
 /**
   * @brief System Clock Configuration
