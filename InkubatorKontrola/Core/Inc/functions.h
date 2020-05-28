@@ -29,6 +29,9 @@ void lcd_send_data (char data);
 void lcd_send_string (char *str);
 void lcd_put_cur(int row, int col);
 void lcd_clear (void);
+void setpointChange(void);
+void stepperMotorControl(int);
+
 /*Struct za pakovanje podataka sa eksternog RTC*/
 typedef  struct {
 	uint8_t seconds;

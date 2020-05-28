@@ -98,6 +98,9 @@ int main(void)
 	double RH_value, T_value;
 	char * strptr;
 	strptr=lcd_string;
+	uint8_t startDay,startMonth; 										//dan i mesec pocetka procesa inkubacije
+	uint8_t currentDay,currentMonth,currentTime,prevousTime;			//trenutni dan i mesec u toku inkubacije
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -128,17 +131,23 @@ HAL_TIM_Base_Start_IT(&htim5);
 
 lcd_init ();
   /* USER CODE END 2 */
-
+getTimeDate_DS3231(DS3231_ADDRESS_I2C);
+startDay=time.day;
+startMonth=time.month;
+prevousTime=0;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+	  currentDay=time.day;
+	  currentMonth=time.month;
+	  currentTime=time.hours;
 
 	  sprintf(lcd_string,"Time:%02d:%02d:%02d",time.hours, time.minutes,time.seconds); //string koji ispisuje vreme
 	  lcd_put_cur(0,0);
 	  lcd_send_string(lcd_string);
-	  while(*(strptr++) !='\0')
+	  while(*(strptr++) !='\0')				//brise string
 	  	  {
 	  		  *(strptr++)=0;
 	  	  }
@@ -150,7 +159,7 @@ lcd_init ();
 	  if(RHTptr== NULL) //greska prilikom ucitavanja
 	  {
 
-		  while(*(strptr++) !='\0')
+		  while(*(strptr++) !='\0')        //brise string
 		  	  	  {
 		  	  		  *(strptr++)=0;
 		  	  	  }
@@ -171,11 +180,11 @@ lcd_init ();
 	  {
 		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET); //ukljuci ventilator
 	  }
-	  else if(RH_value<65)
+	  else if(RH_value<SETPOINT_HUM)
 	  {
 		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//iskljuci ventilator
 	  }
-	  else if (RH_value<50)
+	  else if (RH_value<SETPOINT_HUM)
 	  {
 		  while(*(strptr++) !='\0')
 		  {
@@ -185,7 +194,7 @@ lcd_init ();
 		    lcd_put_cur(0, 0);
 		    strcpy(lcd_string,"Niska vlaznost!");
 		    lcd_send_string(strptr);
-		    while(*(strptr++) !='\0')
+		    while(*(strptr++) !='\0')    //brise string
 		    		  {
 		    		  	 *(strptr++)=0;
 		    		   }
@@ -195,18 +204,19 @@ lcd_init ();
 	  }
 	  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
 	  {
-		  delay_ms(40);
+		  delay_ms(40);				//debouncing
+
 		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET)
 		  {
 
-		  		  while(*(strptr++) !='\0')
+		  		  while(*(strptr++) !='\0')				//brise string
 		  		  	  	  {
 		  		  	  		  *(strptr++)=0;
 		  		  	  	  }
 		  		  	  	  lcd_clear();
 		  				  lcd_put_cur(0, 0);
 		  				  sprintf(lcd_string,"T=%2.1f[degC]",T_value);
-		  				while(*(strptr++) !='\0')
+		  				while(*(strptr++) !='\0')	    //brise string
 		  					{
 		  					  *(strptr++)=0;
 		  					}
@@ -215,6 +225,12 @@ lcd_init ();
 		  					delay_ms(2000);
 		  }
 	  }
+	  /*Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije */
+	  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
+	  {
+		  //dodati if uslov za aktivaciju u slucaju razlike od 1h
+		  stepperMotorControlFD();
+	  };
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -582,8 +598,9 @@ void delay_ms(unsigned long delay_ms)
 }
 unsigned long millis(void)
 {
-	 int temp;
-	 temp= __HAL_TIM_GET_COUNTER(&htim2);
+
+	unsigned long temp;
+	temp= (unsigned long) HAL_GetTick();
 	 return temp;
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

@@ -249,7 +249,57 @@ void lcd_send_string (char *str)
 	while (*str) lcd_send_data (*str++);
 }
 
+void setpointChange(void)
+{
+};
+/*-----------------------------------------------------------------------------
+ * Funkcija koja kontrolise okretanje step motora i njegovu brzinu.
+ * Brzinu okretanja odredjuje parametar int delay.
+ *
+ * ---------------------------------------------------------------------------*/
+void stepperMotorControlFD(int delay)
+{
+	/*--------------------------------------------------------------------------
+	 * Full Drive mod koraci
+	 *  1 1 0 0
+	 *  0 1 1 0
+	 *  0 0 1 1
+	 *  1 0 0 1
+	 *-------------------------------------------------------------------------- */
+	int count=0;
+	//Rezolucija motora je 1.8deg po koraku, odnosno 200 koraka za 360 stepeni
+	//Kako bi se ovaj motor okrenuo pun krug za 1 sekundu, potrebno je koristiti
+	//delay od 5ms.
+	while(count<50)
+	{
+	//Step 1
+	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_RESET );
+	delay_ms(delay);
+	//Step 2
+	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_RESET );
+	delay_ms(delay);
+	//Step 3
+	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_SET );
+	delay_ms(delay);
+	//Step 4
+	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_SET );
+	delay_ms(delay);
+	count++;
+	}
 
+};
 
 
 

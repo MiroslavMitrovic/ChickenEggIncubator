@@ -12,3 +12,5 @@ functions.c:189:6:lcd_clear	8	static
 functions.c:202:6:lcd_put_cur	16	static
 functions.c:219:6:lcd_init	8	static
 functions.c:247:6:lcd_send_string	16	static
+functions.c:252:6:setpointChange	4	static
+functions.c:260:6:stepperMotorControlFD	24	static
