@@ -229,7 +229,7 @@ prevousTime=0;
 	  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 	  {
 		  //dodati if uslov za aktivaciju u slucaju razlike od 1h
-		  stepperMotorControlFD();
+		  stepperMotorControlFD(5);
 	  };
     /* USER CODE END WHILE */
 

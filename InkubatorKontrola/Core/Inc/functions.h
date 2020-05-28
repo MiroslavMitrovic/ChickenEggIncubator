@@ -30,7 +30,7 @@ void lcd_send_string (char *str);
 void lcd_put_cur(int row, int col);
 void lcd_clear (void);
 void setpointChange(void);
-void stepperMotorControl(int);
+void stepperMotorControlFD(int);
 
 /*Struct za pakovanje podataka sa eksternog RTC*/
 typedef  struct {
