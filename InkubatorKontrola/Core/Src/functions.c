@@ -9,6 +9,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stm32f4xx_hal_gpio.h>
 #define LCD_I2C_SLAVE_ADDRESS 0x7E 						//adresa i2c interfejsa za LCD
 extern TIME time;
 extern I2C_HandleTypeDef hi2c1; 						//stavi hi2c koji koristis
@@ -76,8 +77,8 @@ double * DHT12_ocitavanje(int DHT12_address)
 	if(data[5]==(data[1]+data[2]+data[3]+data[4]))//checksum provera
 	{
 
-		sprintf(RH_val,"%2d.%2d",RH_int,RH_dec);
-		sprintf(T_val,"%2d.%2d",T_int,T_dec);
+		sprintf(RH_val,"%2d.%1d",RH_int,RH_dec);
+		sprintf(T_val,"%2d.%1d",T_int,T_dec);
 		RHT_val[0]=atof(T_val);
 		RHT_val[1]=atof(RH_val);
 		return RHT_val;
@@ -95,7 +96,7 @@ double * DHT12_ocitavanje(int DHT12_address)
  *--------------------------------------------------------------------------------*/
 void getTimeDate_DS3231(int DS3231_I2C_address)
 {
-	uint8_t get_time[7];
+	uint8_t get_time[7]={0};
 
 	HAL_I2C_Mem_Read(&hi2c1,DS3231_I2C_address,0x00,1,get_time,7,1000);
 
@@ -142,11 +143,12 @@ int hextodec(uint8_t val)
  * ---------------------------------------------------------------------------*/
 int find_I2C_deviceAddress(void)
 {
-	int i=0;
+	uint8_t i=0;
 	for(i=0;i<255;i++)
 	{
 		if(HAL_I2C_IsDeviceReady(&hi2c1,i,1,10)==HAL_OK)
 		{
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 			return i;
 			break;
 		}
@@ -267,10 +269,10 @@ void stepperMotorControlFD(int delay)
 	 *  1 0 0 1
 	 *-------------------------------------------------------------------------- */
 	int count=0;
-	//Rezolucija motora je 1.8deg po koraku, odnosno 200 koraka za 360 stepeni
+	//Rezolucija motora je 0.70175 po koraku, odnosno 513 koraka za 360 stepeni
 	//Kako bi se ovaj motor okrenuo pun krug za 1 sekundu, potrebno je koristiti
-	//delay od 5ms.
-	while(count<50)
+	//delay od 2ms.
+	while(count<513)
 	{
 	//Step 1
 	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_SET);
@@ -295,6 +297,11 @@ void stepperMotorControlFD(int delay)
 	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_SET );
+	delay_ms(delay);
+	HAL_GPIO_WritePin(StepperMotorPin1_GPIO_Port, StepperMotorPin1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin2_GPIO_Port, StepperMotorPin2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin3_GPIO_Port, StepperMotorPin3_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(StepperMotorPin4_GPIO_Port, StepperMotorPin4_Pin, GPIO_PIN_RESET );
 	delay_ms(delay);
 	count++;
 	}
