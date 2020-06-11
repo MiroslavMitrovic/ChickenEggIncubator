@@ -193,7 +193,7 @@ BMP280_calc_values();
 	  //stepperMotorControlFD(2);
 	  StvarnaTemperatura=temperature;
 	  RelativnaVlaznost=relative_humidity;
-	 // stepperMotorControlFD(15);
+	 //stepperMotorControlFD(15);
 	  incubationStarted=true;
 	  if(incubationStarted==true)
 	 {
