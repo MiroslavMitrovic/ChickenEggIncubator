@@ -52,10 +52,11 @@ int PID_control(int setpoint, float Kp, float Ki ,float Kd, float stvarna_temper
  * ----------------------------------------------------------------------------------------------*/
 void kontrola_grejac(int PID_Greska)
 {
-		  delay_us(max_firing_delay-PID_Greska); //Ovaj delay kontrolise snagu grejaca
-	      HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_SET);//HALGPIOPINSET
-	      delay_us(100);
-	      HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_RESET); //HALGPIOPINRESET
+	 	 delay_us(max_firing_delay-PID_Greska); //Ovaj delay kontrolise snagu grejaca
+	    HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_SET);//HALGPIOPINSET
+	    delay_us(100);
+		HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_RESET); //HALGPIOPINRESET
+
 	      zero_croosing=0;//false
 }
 /*-----------------------------------------------------------------------------------------------------------------------

@@ -61,9 +61,9 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-float Kp=203.00;			//Kp PID kontrolera
-float Ki=7.2;				//Ki PID kontrolera
-float Kd=1.04;				//Kd PID kontrolera
+float Kp=20.00;			//Kp PID kontrolera
+float Ki=2.2;				//Ki PID kontrolera
+float Kd=1.0;				//Kd PID kontrolera
 char lcd_string[100];		//string za ispisivanje  na LCD
 
 TIME time; //object struct u koji se upisuju podaci iz stringa
@@ -146,6 +146,7 @@ BMP280_calc_values();
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  lcd_clear();
 	  BMP280_calc_values();
 	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
 	  currentDay=time.day;
@@ -166,6 +167,7 @@ BMP280_calc_values();
 	  sprintf(lcd_string,"Date:%02d-%02d-20%02d",time.date, time.month,time.year);	//string koji ispisuje datum
 	  delay_ms(50);
 	  lcd_send_string(lcd_string);
+	  strptr=lcd_string;
 	  while(*(strptr) !='\0')				//brise string
 	  	  	  {
 	  	  		  *(strptr++)=0;
@@ -188,7 +190,7 @@ BMP280_calc_values();
 		  lcd_send_string(lcd_string);//Error!
 	  }
 	  */
-	  delay_ms(5000);
+	  delay_ms(1000);
 	  //lcd_clear();
 	  //stepperMotorControlFD(2);
 	  StvarnaTemperatura=temperature;
@@ -198,9 +200,14 @@ BMP280_calc_values();
 	  if(incubationStarted==true)
 	 {
 		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,StvarnaTemperatura);
+		  while(!((HAL_GPIO_ReadPin(zeroCrossing_GPIO_Port, zeroCrossing_Pin)==GPIO_PIN_SET)));
+		  zero_croosing=1;
+
+
 		  if(zero_croosing==1)
 			 {
-				 kontrola_grejac(PidKorekcija);
+				 kontrola_grejac(0);
+
 			 }
 		  if(RelativnaVlaznost>=SETPOINT_HUM)
 		  {
@@ -209,7 +216,7 @@ BMP280_calc_values();
 		  else if(RelativnaVlaznost<SETPOINT_HUM)
 		  {
 			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//iskljuci ventilator
-
+			  strptr=lcd_string;
 			  while(*(strptr) !='\0')
 			  {
 
@@ -221,6 +228,7 @@ BMP280_calc_values();
 				strcpy(lcd_string,"Niska vlaznost!");
 				lcd_send_string(lcd_string);
 				delay_ms(500);
+				strptr=lcd_string;
 				while(*(strptr) !='\0')
 				 {
 				  *(strptr++)=0;
@@ -233,7 +241,7 @@ BMP280_calc_values();
 
 			  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET)
 			  {
-
+				  	  	  	  strptr=lcd_string;
 				  	  	  	  while(*(strptr) !='\0')
 				 			  {
 				  	  	  		 *(strptr++)=0;
@@ -246,6 +254,7 @@ BMP280_calc_values();
 							  delay_ms(50);
 							  lcd_send_string(lcd_string);
 							  //delay_ms(500);
+							 strptr=lcd_string;
 							 while(*(strptr) !='\0')
 							  {
 								*(strptr++)=0;
@@ -255,6 +264,7 @@ BMP280_calc_values();
 							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
 							  //delay_ms(50);
 							  lcd_send_string(lcd_string);
+							  strptr=lcd_string;
 							  while(*(strptr) !='\0')
 							   {
 							  	*(strptr++)=0;
@@ -587,11 +597,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : zeroCrossing_Pin */
-  GPIO_InitStruct.Pin = zeroCrossing_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pins : zeroCrossing_Pin OTG_FS_OverCurrent_Pin */
+  GPIO_InitStruct.Pin = zeroCrossing_Pin|OTG_FS_OverCurrent_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(zeroCrossing_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : I2S3_MCK_Pin I2S3_SCK_Pin I2S3_SD_Pin */
   GPIO_InitStruct.Pin = I2S3_MCK_Pin|I2S3_SCK_Pin|I2S3_SD_Pin;
@@ -615,21 +625,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : OTG_FS_OverCurrent_Pin */
-  GPIO_InitStruct.Pin = OTG_FS_OverCurrent_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : MEMS_INT2_Pin */
   GPIO_InitStruct.Pin = MEMS_INT2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
