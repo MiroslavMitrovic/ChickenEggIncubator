@@ -62,7 +62,7 @@ _DECL float timePrev _INIT(0);
 _DECL float Time _INIT(0);
 _DECL float elapsedTime _INIT(0);
 _DECL volatile bool  zero_croosing _INIT(0);
-_DECL const int max_firing_delay _INIT(7400);
+_DECL const int max_firing_delay _INIT(10000);
 _DECL volatile uint8_t RH_int _INIT(0);
 _DECL volatile uint8_t RH_dec _INIT(0);
 _DECL volatile uint8_t T_int  _INIT(0);

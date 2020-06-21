@@ -21,30 +21,28 @@ extern I2C_HandleTypeDef hi2c1; 						//stavi hi2c koji koristis
  * --------------------------------------------------------------------------------------------------------------------*/
 int PID_control(int setpoint, float Kp, float Ki ,float Kd, float stvarna_temperatura )
 {
+			Time= millis();                //trenutno vreme
+	        elapsedTime = (double)(Time - timePrev);        //izracunati vreme proslog vremena prethodnog racunanja
 
-	  if(PID_greska > 20)                              //Ki se koristi samo za vrednosti greske ispod 20degC
-	    {
-		  PID_i = 0;
-	    };
-	  	PID_greska = setpoint - stvarna_temperatura;
+	        PID_greska = stvarna_temperatura-setpoint  ;                                // greska
 
-	    PID_p = Kp * PID_greska;                         //Racunanje P vrednosti
-	    PID_i = PID_i + (Ki * PID_greska);               //Racunanje I vrednosti
-	    timePrev = Time;                    			//Prethodno vreme
-	    Time = millis();                    			//Trenutno ucitano vreme
-	    elapsedTime = (Time - timePrev) / 1000.00;
-	    PID_d = Kd*((PID_greska - PID_prethodna_greska)/elapsedTime);  //Racunanje D vrednosti
-	    PID_vrednost = PID_p + PID_i + PID_d;                      //Racunanje cele PID vrednosti
+	        PID_i += PID_greska * elapsedTime;                // integralni deo
+	        PID_d = (PID_greska - PID_prethodna_greska)/elapsedTime;   // deo izvoda
+	        if(PID_greska<0)
+	             {PID_i=0;}
+	        PID_vrednost = Kp*PID_greska + Ki*PID_i ;                //PID korekcija
 
-	    if(PID_vrednost < 0)
-	    	{
-	    	PID_vrednost = 0; //
-	    	};
-	    if(PID_vrednost > 7400)
-	    	{
-	    	PID_vrednost = 7400; //maksimalna vrednost kontrole u slucaju vremena od 10ms
-	    	};
-	    PID_prethodna_greska = PID_greska; //prethodna greska.
+	        PID_prethodna_greska = PID_greska;                                //sacuvati trenutnu gresku za sledecu iteraciju
+	        timePrev = Time;                        //sacuvati trenutno vreme za sledecu iteraciju
+
+	        if(PID_vrednost > 10000)
+	        	    	{
+	        	    	PID_vrednost = 10000; //maksimalna vrednost kontrole u slucaju vremena od 10ms
+	        	    	};
+	       if(PID_vrednost <0)
+	        {
+	        	PID_vrednost = 0; //maksimalna vrednost kontrole u slucaju vremena od 10ms
+	       	};
 	    return PID_vrednost;
 }
 /*-----------------------------------------------------------------------------------------------
@@ -52,12 +50,12 @@ int PID_control(int setpoint, float Kp, float Ki ,float Kd, float stvarna_temper
  * ----------------------------------------------------------------------------------------------*/
 void kontrola_grejac(int PID_Greska)
 {
-	 	 delay_us(max_firing_delay-PID_Greska); //Ovaj delay kontrolise snagu grejaca
-	    HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_SET);//HALGPIOPINSET
-	    delay_us(100);
-		HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_RESET); //HALGPIOPINRESET
 
-	      zero_croosing=0;//false
+	HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_SET);//HALGPIOPINSET
+	delay_us(max_firing_delay-PID_Greska);//Ovaj delay kontrolise snagu grejaca
+	HAL_GPIO_WritePin(FiringPin_GPIO_Port, FiringPin_Pin, GPIO_PIN_RESET); //HALGPIOPINRESET
+	delay_us(100);
+	zero_croosing=0;//false
 }
 /*-----------------------------------------------------------------------------------------------------------------------
  * Funkcija koja vrsi ocitavanje temperature i vlaznosti vazduha putem i2c Bus-a i vraca dbl* na niz gde su vrednosti

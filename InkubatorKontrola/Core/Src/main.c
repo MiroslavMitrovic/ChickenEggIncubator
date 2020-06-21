@@ -61,9 +61,9 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-float Kp=20.00;			//Kp PID kontrolera
-float Ki=2.2;				//Ki PID kontrolera
-float Kd=1.0;				//Kd PID kontrolera
+float Kp=100.00;			//Kp PID kontrolera
+float Ki=5.2;				//Ki PID kontrolera
+float Kd=1.10;				//Kd PID kontrolera
 char lcd_string[100];		//string za ispisivanje  na LCD
 
 TIME time; //object struct u koji se upisuju podaci iz stringa
@@ -140,15 +140,16 @@ adrFound=find_I2C_deviceAddress();
 lcd_init ();
 BMP280_init(0x57,0x48,0x05);// osrs_t 010 x2, osrs_p 16 101, mode normal 11 // standby time 500ms 100, filter 16 100, SPI DIS 0
 BMP280_calc_values();
+lcd_clear();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  lcd_clear();
+	 // lcd_clear();
 	  BMP280_calc_values();
-	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+	 /* getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
 	  currentDay=time.day;
 	  currentMonth=time.month;
 	  currentTime=time.hours;
@@ -189,27 +190,27 @@ BMP280_calc_values();
 		  delay_ms(50);
 		  lcd_send_string(lcd_string);//Error!
 	  }
-	  */
+
 	  delay_ms(1000);
 	  //lcd_clear();
 	  //stepperMotorControlFD(2);
-	  StvarnaTemperatura=temperature;
+	 */ StvarnaTemperatura=temperature;
 	  RelativnaVlaznost=relative_humidity;
 	 //stepperMotorControlFD(15);
 	  incubationStarted=true;
 	  if(incubationStarted==true)
 	 {
-		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,StvarnaTemperatura);
+		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
 		  while(!((HAL_GPIO_ReadPin(zeroCrossing_GPIO_Port, zeroCrossing_Pin)==GPIO_PIN_SET)));
 		  zero_croosing=1;
 
 
 		  if(zero_croosing==1)
 			 {
-				 kontrola_grejac(0);
+				 kontrola_grejac(PidKorekcija);
 
 			 }
-		  if(RelativnaVlaznost>=SETPOINT_HUM)
+		/*  if(RelativnaVlaznost>=SETPOINT_HUM)
 		  {
 			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET); //ukljuci ventilator
 		  }
@@ -234,7 +235,7 @@ BMP280_calc_values();
 				  *(strptr++)=0;
 				 }
 
-		  }
+		  }*/
 		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
 		  {
 			  delay_ms(40);				//debouncing
@@ -246,7 +247,7 @@ BMP280_calc_values();
 				 			  {
 				  	  	  		 *(strptr++)=0;
 				 			   }
-							  lcd_clear();
+							 // lcd_clear();
 							  delay_ms(50);
 							  lcd_put_cur(0, 0);
 							  delay_ms(50);
@@ -269,11 +270,11 @@ BMP280_calc_values();
 							   {
 							  	*(strptr++)=0;
 							   }
-							  delay_ms(2000);
+							  delay_ms(200);
 			  }
 		  }
 		  /*Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije */
-		  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
+		/*  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 		  {
 			  if(hourSts) //check uslov za prvu inicijalizaciju prev time
 			  {
@@ -287,7 +288,7 @@ BMP280_calc_values();
 			  }
 
 
-		   }
+		   }*/
 	  }
   };
     /* USER CODE END WHILE */
