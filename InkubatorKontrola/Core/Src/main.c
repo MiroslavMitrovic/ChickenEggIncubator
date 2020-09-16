@@ -61,8 +61,8 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-float Kp=100.00;			//Kp PID kontrolera
-float Ki=5.2;				//Ki PID kontrolera
+float Kp=50.00;			//Kp PID kontrolera
+float Ki=2.2;				//Ki PID kontrolera
 float Kd=1.10;				//Kd PID kontrolera
 char lcd_string[100];		//string za ispisivanje  na LCD
 
@@ -141,15 +141,15 @@ lcd_init ();
 BMP280_init(0x57,0x48,0x05);// osrs_t 010 x2, osrs_p 16 101, mode normal 11 // standby time 500ms 100, filter 16 100, SPI DIS 0
 BMP280_calc_values();
 lcd_clear();
+//setTime_DS3231(DS3231_ADDRESS_I2C, 00, 23, 23, 7, 5, 9, 20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // lcd_clear();
-	  BMP280_calc_values();
-	 /* getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+	   BMP280_calc_values();
+	/*  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
 	  currentDay=time.day;
 	  currentMonth=time.month;
 	  currentTime=time.hours;
@@ -159,11 +159,11 @@ lcd_clear();
 	  lcd_put_cur(0,0);
 	  delay_ms(50);
 	  lcd_send_string(lcd_string);
-
-	  while(*(strptr) !='\0')				//brise string
-	  	  {
-	  		  *(strptr++)=0;
-	  	  }
+	  strptr=lcd_string;
+	  while(*(strptr) !='\0')
+	  {
+		  *(strptr++)=0;
+	  }
 	  lcd_put_cur(1,0);
 	  sprintf(lcd_string,"Date:%02d-%02d-20%02d",time.date, time.month,time.year);	//string koji ispisuje datum
 	  delay_ms(50);
@@ -195,9 +195,11 @@ lcd_clear();
 	  //lcd_clear();
 	  //stepperMotorControlFD(2);
 	 */ StvarnaTemperatura=temperature;
+	 //DODAJ FILTER ZA UPROSECAVANJE VREDNOSTI VLAZNOSTI VAZDUHA//
 	  RelativnaVlaznost=relative_humidity;
 	 //stepperMotorControlFD(15);
-	  incubationStarted=true;
+	 incubationStarted=true;
+	 //Dodati interrupt za zerocrossing i da se vrsi koerekcija
 	  if(incubationStarted==true)
 	 {
 		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
@@ -235,7 +237,31 @@ lcd_clear();
 				  *(strptr++)=0;
 				 }
 
-		  }*/
+		  */
+	 	 }
+	  strptr=lcd_string;
+	  				  	  	  	  while(*(strptr) !='\0')
+	  				 			  {
+	  				  	  	  		 *(strptr++)=0;
+	  				 			   }
+	  							  //lcd_clear();
+	  							  delay_ms(30);
+	  							  lcd_put_cur(0, 0);
+	  							  delay_ms(30);
+	  							  sprintf(lcd_string,"T=%2.1f[degC]",StvarnaTemperatura);
+	  							  lcd_send_string(lcd_string);
+	  							 strptr=lcd_string;
+	  							 while(*(strptr) !='\0')
+	  							  {
+	  								*(strptr++)=0;
+	  							  }
+	  							 delay_ms(30);
+	  							 lcd_put_cur(1, 0);
+	  							  delay_ms(30);
+	  							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
+	  							  lcd_send_string(lcd_string);
+
+	  	  /*
 		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
 		  {
 			  delay_ms(40);				//debouncing
@@ -247,23 +273,21 @@ lcd_clear();
 				 			  {
 				  	  	  		 *(strptr++)=0;
 				 			   }
-							 // lcd_clear();
-							  delay_ms(50);
+							  lcd_clear();
+							  delay_ms(10);
 							  lcd_put_cur(0, 0);
-							  delay_ms(50);
+							  delay_ms(10);
 							  sprintf(lcd_string,"T=%2.1f[degC]",StvarnaTemperatura);
-							  delay_ms(50);
+							  delay_ms(10);
 							  lcd_send_string(lcd_string);
-							  //delay_ms(500);
 							 strptr=lcd_string;
 							 while(*(strptr) !='\0')
 							  {
 								*(strptr++)=0;
 							  }
 							  lcd_put_cur(1, 0);
-							  delay_ms(50);
+							  delay_ms(10);
 							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
-							  //delay_ms(50);
 							  lcd_send_string(lcd_string);
 							  strptr=lcd_string;
 							  while(*(strptr) !='\0')
@@ -273,6 +297,7 @@ lcd_clear();
 							  delay_ms(200);
 			  }
 		  }
+		  delay_ms(2000);
 		  /*Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije */
 		/*  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 		  {
@@ -294,7 +319,7 @@ lcd_clear();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-}
+
   /* USER CODE END 3 */
 
 

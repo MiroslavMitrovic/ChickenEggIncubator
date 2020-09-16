@@ -3,6 +3,8 @@
  *
  *  Created on: 28. 10. 2017
  *      Author: CyberPunkTECH
+ *      Modified on 05. 09. 2020
+ *      Modifier: Miroslav Mitrovic
  */
 
 #include "BMP280.h"
