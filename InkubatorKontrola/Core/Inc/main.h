@@ -100,6 +100,7 @@ void Error_Handler(void);
 #define StepperMotorPin1_GPIO_Port GPIOD
 #define zeroCrossing_Pin GPIO_PIN_10
 #define zeroCrossing_GPIO_Port GPIOD
+#define zeroCrossing_EXTI_IRQn EXTI15_10_IRQn
 #define FiringPin_Pin GPIO_PIN_11
 #define FiringPin_GPIO_Port GPIOD
 #define LD4_Pin GPIO_PIN_12

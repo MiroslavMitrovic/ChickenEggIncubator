@@ -61,9 +61,9 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-float Kp=50.00;			//Kp PID kontrolera
-float Ki=2.2;				//Ki PID kontrolera
-float Kd=1.10;				//Kd PID kontrolera
+float Kp=14400.00;			//Kp PID kontrolera 1400 OK stavljen 2400 test
+float Ki=200.2;				//Ki PID kontrolera-7.2 OK stavljen 10.2 test
+float Kd=1.30;				//Kd PID kontrolera
 char lcd_string[100];		//string za ispisivanje  na LCD
 
 TIME time; //object struct u koji se upisuju podaci iz stringa
@@ -93,7 +93,7 @@ static void MX_TIM5_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int PidKorekcija=0;
+
 	float StvarnaTemperatura=0.0;
 	float RelativnaVlaznost=0.0;
 	double * RHTptr;
@@ -148,7 +148,7 @@ lcd_clear();
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	   BMP280_calc_values();
+ 	  BMP280_calc_values();
 	/*  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
 	  currentDay=time.day;
 	  currentMonth=time.month;
@@ -175,43 +175,22 @@ lcd_clear();
 	  	  	  }
 
 
-	 /* RHTptr =DHT12_ocitavanje(DHT12_ADDRESS_I2C);
-	  if(*RHTptr== 0) //greska prilikom ucitavanja
-	  {
 
-		  while(*(strptr++) !='\0')        //brise string
-		  	  	  {
-		  	  		  *strptr=0;
-		  	  	  }
-		  lcd_clear();
-		  delay_ms(50);
-		  lcd_put_cur(0, 0);
-		  sprintf(lcd_string,"Greska!");
-		  delay_ms(50);
-		  lcd_send_string(lcd_string);//Error!
-	  }
 
-	  delay_ms(1000);
-	  //lcd_clear();
-	  //stepperMotorControlFD(2);
+
+
 	 */ StvarnaTemperatura=temperature;
 	 //DODAJ FILTER ZA UPROSECAVANJE VREDNOSTI VLAZNOSTI VAZDUHA//
 	  RelativnaVlaznost=relative_humidity;
 	 //stepperMotorControlFD(15);
 	 incubationStarted=true;
-	 //Dodati interrupt za zerocrossing i da se vrsi koerekcija
+
 	  if(incubationStarted==true)
 	 {
+		  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
 		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
-		  while(!((HAL_GPIO_ReadPin(zeroCrossing_GPIO_Port, zeroCrossing_Pin)==GPIO_PIN_SET)));
-		  zero_croosing=1;
 
-
-		  if(zero_croosing==1)
-			 {
-				 kontrola_grejac(PidKorekcija);
-
-			 }
+	 }
 		/*  if(RelativnaVlaznost>=SETPOINT_HUM)
 		  {
 			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET); //ukljuci ventilator
@@ -238,8 +217,8 @@ lcd_clear();
 				 }
 
 		  */
-	 	 }
-	  strptr=lcd_string;
+
+	  	  	  	  	  	  	  	  strptr=lcd_string;
 	  				  	  	  	  while(*(strptr) !='\0')
 	  				 			  {
 	  				  	  	  		 *(strptr++)=0;
@@ -261,7 +240,7 @@ lcd_clear();
 	  							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
 	  							  lcd_send_string(lcd_string);
 
-	  	  /*
+	  	/*
 		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
 		  {
 			  delay_ms(40);				//debouncing
@@ -298,8 +277,8 @@ lcd_clear();
 			  }
 		  }
 		  delay_ms(2000);
-		  /*Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije */
-		/*  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
+		  //Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije
+		  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 		  {
 			  if(hourSts) //check uslov za prvu inicijalizaciju prev time
 			  {
@@ -313,7 +292,8 @@ lcd_clear();
 			  }
 
 
-		   }*/
+		   }
+		   */
 	  }
   };
     /* USER CODE END WHILE */
@@ -332,11 +312,11 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage 
+  /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -350,7 +330,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -554,7 +534,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, FanPin_Pin|StepperMotorPin4_Pin|StepperMotorPin3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin 
+  HAL_GPIO_WritePin(GPIOD, StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin
                           |LD3_Pin|LD5_Pin|LD6_Pin|Audio_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : CS_I2C_SPI_Pin */
@@ -614,20 +594,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : StepperMotorPin2_Pin StepperMotorPin1_Pin FiringPin_Pin LD4_Pin 
+  /*Configure GPIO pins : StepperMotorPin2_Pin StepperMotorPin1_Pin FiringPin_Pin LD4_Pin
                            LD3_Pin LD5_Pin LD6_Pin Audio_RST_Pin */
-  GPIO_InitStruct.Pin = StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin 
+  GPIO_InitStruct.Pin = StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin
                           |LD3_Pin|LD5_Pin|LD6_Pin|Audio_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : zeroCrossing_Pin OTG_FS_OverCurrent_Pin */
-  GPIO_InitStruct.Pin = zeroCrossing_Pin|OTG_FS_OverCurrent_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : zeroCrossing_Pin */
+  GPIO_InitStruct.Pin = zeroCrossing_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  HAL_GPIO_Init(zeroCrossing_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : I2S3_MCK_Pin I2S3_SCK_Pin I2S3_SD_Pin */
   GPIO_InitStruct.Pin = I2S3_MCK_Pin|I2S3_SCK_Pin|I2S3_SD_Pin;
@@ -651,11 +631,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : OTG_FS_OverCurrent_Pin */
+  GPIO_InitStruct.Pin = OTG_FS_OverCurrent_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : MEMS_INT2_Pin */
   GPIO_InitStruct.Pin = MEMS_INT2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -663,7 +654,7 @@ static void MX_GPIO_Init(void)
 void delay_us(unsigned long delay_us)
 {
 	__HAL_TIM_SET_COUNTER(&htim5,0);
-	while(__HAL_TIM_GET_COUNTER(&htim5)<delay_us);
+ 	while(__HAL_TIM_GET_COUNTER(&htim5)<delay_us);
 }
 void delay_ms(unsigned long delay_ms)
 {
@@ -717,7 +708,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

@@ -72,6 +72,7 @@ _DECL char T_val [6];
 _DECL char RH_val [6];
 _DECL double RHT_val[2];
 _DECL uint8_t get_time[7];
+_DECL volatile unsigned int PidKorekcija _INIT(0);
 
 #endif
 //
