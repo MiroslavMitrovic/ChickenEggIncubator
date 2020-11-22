@@ -1,0 +1,160 @@
+\hypertarget{struct_____s_p_i___handle_type_def}{}\doxysection{\+\_\+\+\_\+\+S\+P\+I\+\_\+\+Handle\+Type\+Def Struct Reference}
+\label{struct_____s_p_i___handle_type_def}\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+
+
+S\+PI handle Structure definition.  
+
+
+
+
+{\ttfamily \#include $<$stm32f4xx\+\_\+hal\+\_\+spi.\+h$>$}
+
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{struct_s_p_i___type_def}{S\+P\+I\+\_\+\+Type\+Def}} $\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_aa5c715deaf693cc2dbfa90f40681ee1d}{Instance}}
+\item 
+\mbox{\hyperlink{struct_s_p_i___init_type_def}{S\+P\+I\+\_\+\+Init\+Type\+Def}} \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a33f0dc84acb181a4702b30c92f007ca6}{Init}}
+\item 
+uint8\+\_\+t $\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a5cc31f7c52dafd32f27f8f2756dbf343}{p\+Tx\+Buff\+Ptr}}
+\item 
+uint16\+\_\+t \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a80907b65d6f9541bc0dee444d16bc45b}{Tx\+Xfer\+Size}}
+\item 
+\mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint16\+\_\+t \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a1823437fbed80bdd1510782ced4e5532}{Tx\+Xfer\+Count}}
+\item 
+uint8\+\_\+t $\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a7cee540cb21048ac48ba17355440e668}{p\+Rx\+Buff\+Ptr}}
+\item 
+uint16\+\_\+t \mbox{\hyperlink{struct_____s_p_i___handle_type_def_ac12f5f1f6295b3c3327d5feabf5a96fb}{Rx\+Xfer\+Size}}
+\item 
+\mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint16\+\_\+t \mbox{\hyperlink{struct_____s_p_i___handle_type_def_ad95a26d6b12b7087bba3d1b769175db2}{Rx\+Xfer\+Count}}
+\item 
+void($\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a09298c57cd74de92513a1f898496623f}{Rx\+I\+SR}} )(struct \mbox{\hyperlink{struct_____s_p_i___handle_type_def}{\+\_\+\+\_\+\+S\+P\+I\+\_\+\+Handle\+Type\+Def}} $\ast$hspi)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a63edd1a5586fc8db6bdd628169fc9664}{Tx\+I\+SR}} )(struct \mbox{\hyperlink{struct_____s_p_i___handle_type_def}{\+\_\+\+\_\+\+S\+P\+I\+\_\+\+Handle\+Type\+Def}} $\ast$hspi)
+\item 
+\mbox{\hyperlink{group___d_m_a___exported___types_ga41b754a906b86bce54dc79938970138b}{D\+M\+A\+\_\+\+Handle\+Type\+Def}} $\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a33e13c28b1a70e6164417abb026d7a22}{hdmatx}}
+\item 
+\mbox{\hyperlink{group___d_m_a___exported___types_ga41b754a906b86bce54dc79938970138b}{D\+M\+A\+\_\+\+Handle\+Type\+Def}} $\ast$ \mbox{\hyperlink{struct_____s_p_i___handle_type_def_abd0aeec20298a55d89a440320e35634f}{hdmarx}}
+\item 
+\mbox{\hyperlink{stm32f4xx__hal__def_8h_ab367482e943333a1299294eadaad284b}{H\+A\+L\+\_\+\+Lock\+Type\+Def}} \mbox{\hyperlink{struct_____s_p_i___handle_type_def_ad4cf225029dbefe8d3fe660c33b8bb6b}{Lock}}
+\item 
+\mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} \mbox{\hyperlink{group___s_p_i___exported___types_ga8891cb64e76198a860172d94c638c9b4}{H\+A\+L\+\_\+\+S\+P\+I\+\_\+\+State\+Type\+Def}} \mbox{\hyperlink{struct_____s_p_i___handle_type_def_ac77adb7330099a917af1e9021cbb3de1}{State}}
+\item 
+\mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint32\+\_\+t \mbox{\hyperlink{struct_____s_p_i___handle_type_def_a123c5063e6a3b1901b2fbe5f88c53a7e}{Error\+Code}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+S\+PI handle Structure definition. 
+
+\doxysubsection{Field Documentation}
+\mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a123c5063e6a3b1901b2fbe5f88c53a7e}\label{struct_____s_p_i___handle_type_def_a123c5063e6a3b1901b2fbe5f88c53a7e}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!ErrorCode@{ErrorCode}}
+\index{ErrorCode@{ErrorCode}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{ErrorCode}{ErrorCode}}
+{\footnotesize\ttfamily \mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint32\+\_\+t Error\+Code}
+
+S\+PI Error code ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_abd0aeec20298a55d89a440320e35634f}\label{struct_____s_p_i___handle_type_def_abd0aeec20298a55d89a440320e35634f}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!hdmarx@{hdmarx}}
+\index{hdmarx@{hdmarx}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{hdmarx}{hdmarx}}
+{\footnotesize\ttfamily \mbox{\hyperlink{group___d_m_a___exported___types_ga41b754a906b86bce54dc79938970138b}{D\+M\+A\+\_\+\+Handle\+Type\+Def}}$\ast$ hdmarx}
+
+S\+PI Rx D\+MA Handle parameters ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a33e13c28b1a70e6164417abb026d7a22}\label{struct_____s_p_i___handle_type_def_a33e13c28b1a70e6164417abb026d7a22}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!hdmatx@{hdmatx}}
+\index{hdmatx@{hdmatx}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{hdmatx}{hdmatx}}
+{\footnotesize\ttfamily \mbox{\hyperlink{group___d_m_a___exported___types_ga41b754a906b86bce54dc79938970138b}{D\+M\+A\+\_\+\+Handle\+Type\+Def}}$\ast$ hdmatx}
+
+S\+PI Tx D\+MA Handle parameters ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a33f0dc84acb181a4702b30c92f007ca6}\label{struct_____s_p_i___handle_type_def_a33f0dc84acb181a4702b30c92f007ca6}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!Init@{Init}}
+\index{Init@{Init}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{Init}{Init}}
+{\footnotesize\ttfamily \mbox{\hyperlink{struct_s_p_i___init_type_def}{S\+P\+I\+\_\+\+Init\+Type\+Def}} Init}
+
+S\+PI communication parameters ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_aa5c715deaf693cc2dbfa90f40681ee1d}\label{struct_____s_p_i___handle_type_def_aa5c715deaf693cc2dbfa90f40681ee1d}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!Instance@{Instance}}
+\index{Instance@{Instance}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{Instance}{Instance}}
+{\footnotesize\ttfamily \mbox{\hyperlink{struct_s_p_i___type_def}{S\+P\+I\+\_\+\+Type\+Def}}$\ast$ Instance}
+
+S\+PI registers base address ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_ad4cf225029dbefe8d3fe660c33b8bb6b}\label{struct_____s_p_i___handle_type_def_ad4cf225029dbefe8d3fe660c33b8bb6b}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!Lock@{Lock}}
+\index{Lock@{Lock}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{Lock}{Lock}}
+{\footnotesize\ttfamily \mbox{\hyperlink{stm32f4xx__hal__def_8h_ab367482e943333a1299294eadaad284b}{H\+A\+L\+\_\+\+Lock\+Type\+Def}} Lock}
+
+Locking object ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a7cee540cb21048ac48ba17355440e668}\label{struct_____s_p_i___handle_type_def_a7cee540cb21048ac48ba17355440e668}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!pRxBuffPtr@{pRxBuffPtr}}
+\index{pRxBuffPtr@{pRxBuffPtr}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{pRxBuffPtr}{pRxBuffPtr}}
+{\footnotesize\ttfamily uint8\+\_\+t$\ast$ p\+Rx\+Buff\+Ptr}
+
+Pointer to S\+PI Rx transfer Buffer ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a5cc31f7c52dafd32f27f8f2756dbf343}\label{struct_____s_p_i___handle_type_def_a5cc31f7c52dafd32f27f8f2756dbf343}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!pTxBuffPtr@{pTxBuffPtr}}
+\index{pTxBuffPtr@{pTxBuffPtr}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{pTxBuffPtr}{pTxBuffPtr}}
+{\footnotesize\ttfamily uint8\+\_\+t$\ast$ p\+Tx\+Buff\+Ptr}
+
+Pointer to S\+PI Tx transfer Buffer ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a09298c57cd74de92513a1f898496623f}\label{struct_____s_p_i___handle_type_def_a09298c57cd74de92513a1f898496623f}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!RxISR@{RxISR}}
+\index{RxISR@{RxISR}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{RxISR}{RxISR}}
+{\footnotesize\ttfamily void($\ast$ Rx\+I\+SR(struct \mbox{\hyperlink{struct_____s_p_i___handle_type_def}{\+\_\+\+\_\+\+S\+P\+I\+\_\+\+Handle\+Type\+Def}} $\ast$hspi)}
+
+function pointer on Rx I\+SR ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_ad95a26d6b12b7087bba3d1b769175db2}\label{struct_____s_p_i___handle_type_def_ad95a26d6b12b7087bba3d1b769175db2}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!RxXferCount@{RxXferCount}}
+\index{RxXferCount@{RxXferCount}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{RxXferCount}{RxXferCount}}
+{\footnotesize\ttfamily \mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint16\+\_\+t Rx\+Xfer\+Count}
+
+S\+PI Rx Transfer Counter ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_ac12f5f1f6295b3c3327d5feabf5a96fb}\label{struct_____s_p_i___handle_type_def_ac12f5f1f6295b3c3327d5feabf5a96fb}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!RxXferSize@{RxXferSize}}
+\index{RxXferSize@{RxXferSize}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{RxXferSize}{RxXferSize}}
+{\footnotesize\ttfamily uint16\+\_\+t Rx\+Xfer\+Size}
+
+S\+PI Rx Transfer size ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_ac77adb7330099a917af1e9021cbb3de1}\label{struct_____s_p_i___handle_type_def_ac77adb7330099a917af1e9021cbb3de1}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!State@{State}}
+\index{State@{State}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{State}{State}}
+{\footnotesize\ttfamily \mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} \mbox{\hyperlink{group___s_p_i___exported___types_ga8891cb64e76198a860172d94c638c9b4}{H\+A\+L\+\_\+\+S\+P\+I\+\_\+\+State\+Type\+Def}} State}
+
+S\+PI communication state ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a63edd1a5586fc8db6bdd628169fc9664}\label{struct_____s_p_i___handle_type_def_a63edd1a5586fc8db6bdd628169fc9664}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!TxISR@{TxISR}}
+\index{TxISR@{TxISR}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{TxISR}{TxISR}}
+{\footnotesize\ttfamily void($\ast$ Tx\+I\+SR(struct \mbox{\hyperlink{struct_____s_p_i___handle_type_def}{\+\_\+\+\_\+\+S\+P\+I\+\_\+\+Handle\+Type\+Def}} $\ast$hspi)}
+
+function pointer on Tx I\+SR ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a1823437fbed80bdd1510782ced4e5532}\label{struct_____s_p_i___handle_type_def_a1823437fbed80bdd1510782ced4e5532}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!TxXferCount@{TxXferCount}}
+\index{TxXferCount@{TxXferCount}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{TxXferCount}{TxXferCount}}
+{\footnotesize\ttfamily \mbox{\hyperlink{core__sc300_8h_aec43007d9998a0a0e01faede4133d6be}{\+\_\+\+\_\+\+IO}} uint16\+\_\+t Tx\+Xfer\+Count}
+
+S\+PI Tx Transfer Counter ~\newline
+ \mbox{\Hypertarget{struct_____s_p_i___handle_type_def_a80907b65d6f9541bc0dee444d16bc45b}\label{struct_____s_p_i___handle_type_def_a80907b65d6f9541bc0dee444d16bc45b}} 
+\index{\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}!TxXferSize@{TxXferSize}}
+\index{TxXferSize@{TxXferSize}!\_\_SPI\_HandleTypeDef@{\_\_SPI\_HandleTypeDef}}
+\doxysubsubsection{\texorpdfstring{TxXferSize}{TxXferSize}}
+{\footnotesize\ttfamily uint16\+\_\+t Tx\+Xfer\+Size}
+
+S\+PI Tx Transfer size ~\newline
+ 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Drivers/\+S\+T\+M32\+F4xx\+\_\+\+H\+A\+L\+\_\+\+Driver/\+Inc/\mbox{\hyperlink{stm32f4xx__hal__spi_8h}{stm32f4xx\+\_\+hal\+\_\+spi.\+h}}\end{DoxyCompactItemize}

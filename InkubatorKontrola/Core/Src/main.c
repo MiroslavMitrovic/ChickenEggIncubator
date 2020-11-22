@@ -77,7 +77,7 @@ static void MX_SPI1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
-
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 /* USER CODE END PFP */
 
@@ -94,18 +94,17 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-	float StvarnaTemperatura=0.0;
-	float RelativnaVlaznost=0.0;
-	double * RHTptr;
-	double RH_value, T_value;
-	char * strptr;
-	strptr=lcd_string;
+
 	uint8_t startDay,startMonth; 										//dan i mesec pocetka procesa inkubacije
-	uint8_t currentDay,currentMonth,currentTime,prevousTime;			//trenutni dan i mesec u toku inkubacije
-	bool hourSts=true;
+	uint8_t currentDay,currentMonth,currentHour,prevousHour,previousDay;//trenutni dan i mesec u toku inkubacije
+ 	uint8_t remainingDays,remainingHours,currentDayCnt;
+
 	bool incubationStarted=false;
 	bool incubationFinished=false;
+	static bool hourSts=true;
+	static bool daySts=true;
 	int adrFound=0;
+	volatile static menu_cnt;
 
   /* USER CODE END 1 */
 
@@ -141,167 +140,155 @@ lcd_init ();
 BMP280_init(0x57,0x48,0x05);// osrs_t 010 x2, osrs_p 16 101, mode normal 11 // standby time 500ms 100, filter 16 100, SPI DIS 0
 BMP280_calc_values();
 lcd_clear();
-//setTime_DS3231(DS3231_ADDRESS_I2C, 00, 23, 23, 7, 5, 9, 20);
+getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+delay_ms(50);
+start_menu_1();
+delay_ms(2000);
+start_menu_2();
+delay_ms(2000);
+show_date();
+delay_ms(50);
+show_time();
+delay_ms(2000);
+start_menu_3();
+//glcd_test_circles();
+HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
+//setTime_DS3231(DS3231_ADDRESS_I2C, 00, 43 ,18 , 3, 22, 9, 20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
- 	  BMP280_calc_values();
-	/*  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
-	  currentDay=time.day;
-	  currentMonth=time.month;
-	  currentTime=time.hours;
-
-	  sprintf(lcd_string,"Time:%02d:%02d:%02d",time.hours, time.minutes,time.seconds); //string koji ispisuje vreme
-	  delay_ms(50);
-	  lcd_put_cur(0,0);
-	  delay_ms(50);
-	  lcd_send_string(lcd_string);
-	  strptr=lcd_string;
-	  while(*(strptr) !='\0')
-	  {
-		  *(strptr++)=0;
-	  }
-	  lcd_put_cur(1,0);
-	  sprintf(lcd_string,"Date:%02d-%02d-20%02d",time.date, time.month,time.year);	//string koji ispisuje datum
-	  delay_ms(50);
-	  lcd_send_string(lcd_string);
-	  strptr=lcd_string;
-	  while(*(strptr) !='\0')				//brise string
-	  	  	  {
-	  	  		  *(strptr++)=0;
-	  	  	  }
+	  //menu 1 je izabran
+	  if(true==greenButtonPressedStatDeb)
+	  	  {
+		  	  if(false==incubationStarted)
+		  	  {
+		  	  incubationStarted=true;
+		  	  incub_menu_1();
+		  	  delay_ms(2000);
+		  	  show_tempAndHumidity();
+		  	  }
+		  	  else
+		  	  {
+		  		 //do nothing
+		  	  }
+	  	  }
+	  	  else
+	  	  {
+	  		  //do nothing
+	  	  }
+	  BMP280_calc_values();
+ 	  //delay_ms(500);
+ 	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+	  //show_tempAndHumidity();
 
 
+	  static float StvarnaTemperatura=0.0;
+	  static float RelativnaVlaznost=0.0;
 
 
-
-
-	 */ StvarnaTemperatura=temperature;
+	  StvarnaTemperatura=temperature;
 	 //DODAJ FILTER ZA UPROSECAVANJE VREDNOSTI VLAZNOSTI VAZDUHA//
 	  RelativnaVlaznost=relative_humidity;
 	 //stepperMotorControlFD(15);
-	 incubationStarted=true;
+	 //incubationStarted=true;
 
-	  if(incubationStarted==true)
+
+
+	  static uint8_t counter=0;
+	  if(true==incubationStarted)
 	 {
+		  //vadi vreme pocetka inkubacije
+		  if(0>=counter)
+		  {
+			  startDay=time.date;
+			  startMonth=time.month;
+		  }
 		  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
 		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
-
-	 }
-		/*  if(RelativnaVlaznost>=SETPOINT_HUM)
+		  if(0==PidKorekcija)
 		  {
-			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET); //ukljuci ventilator
+			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//ukljuci ventilator
 		  }
-		  else if(RelativnaVlaznost<SETPOINT_HUM)
+		  else
 		  {
-			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//iskljuci ventilator
-			  strptr=lcd_string;
-			  while(*(strptr) !='\0')
-			  {
-
-				 *(strptr++)=0;
-			   }
-				lcd_clear();
-				delay_ms(50);
-				lcd_put_cur(0, 0);
-				strcpy(lcd_string,"Niska vlaznost!");
-				lcd_send_string(lcd_string);
-				delay_ms(500);
-				strptr=lcd_string;
-				while(*(strptr) !='\0')
-				 {
-				  *(strptr++)=0;
-				 }
-
-		  */
-
-	  	  	  	  	  	  	  	  strptr=lcd_string;
-	  				  	  	  	  while(*(strptr) !='\0')
-	  				 			  {
-	  				  	  	  		 *(strptr++)=0;
-	  				 			   }
-	  							  //lcd_clear();
-	  							  delay_ms(30);
-	  							  lcd_put_cur(0, 0);
-	  							  delay_ms(30);
-	  							  sprintf(lcd_string,"T=%2.1f[degC]",StvarnaTemperatura);
-	  							  lcd_send_string(lcd_string);
-	  							 strptr=lcd_string;
-	  							 while(*(strptr) !='\0')
-	  							  {
-	  								*(strptr++)=0;
-	  							  }
-	  							 delay_ms(30);
-	  							 lcd_put_cur(1, 0);
-	  							  delay_ms(30);
-	  							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
-	  							  lcd_send_string(lcd_string);
-
-	  	/*
-		  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET) //prikazuje vrednsot trenutne temperature i vlaznosti
+			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_RESET);//iskljuci ventilator
+		  }
+		  counter++;
+		  if(255==counter)
 		  {
-			  delay_ms(40);				//debouncing
+			  counter=1; //counter reset kad overflowuje
+		  }
+		  show_tempAndHumidity();
 
-			  if(HAL_GPIO_ReadPin(ShowTempPin_GPIO_Port, ShowTempPin_Pin)==GPIO_PIN_SET)
+		  if(true==daySts)
+		  {
+			  previousDay=currentDay;
+			  daySts=false;
+			  currentDayCnt=0;
+
+		  }
+		  else if(previousDay != currentDay)
+		  {
+			  currentDayCnt++;
+			  previousDay=currentDay;
+		  }
+		  //days remaining
+		  if(true==redButtonPressedStatDeb)
+		  {
+			  if(currentMonth==startMonth)
 			  {
-				  	  	  	  strptr=lcd_string;
-				  	  	  	  while(*(strptr) !='\0')
-				 			  {
-				  	  	  		 *(strptr++)=0;
-				 			   }
-							  lcd_clear();
-							  delay_ms(10);
-							  lcd_put_cur(0, 0);
-							  delay_ms(10);
-							  sprintf(lcd_string,"T=%2.1f[degC]",StvarnaTemperatura);
-							  delay_ms(10);
-							  lcd_send_string(lcd_string);
-							 strptr=lcd_string;
-							 while(*(strptr) !='\0')
-							  {
-								*(strptr++)=0;
-							  }
-							  lcd_put_cur(1, 0);
-							  delay_ms(10);
-							  sprintf(lcd_string,"RH=%2.1f[%%]",RelativnaVlaznost);
-							  lcd_send_string(lcd_string);
-							  strptr=lcd_string;
-							  while(*(strptr) !='\0')
-							   {
-							  	*(strptr++)=0;
-							   }
-							  delay_ms(200);
+			  remainingDays=25-currentDayCnt;
+			  	  if(0==remainingDays)
+			  	  {
+			  		currentDayCnt=0; //reset days counter
+			  		incubationFinished=true; //zavrsena inkubacija
+			  	  }
 			  }
+			  incub_menu_3(remainingDays, 1);
+			  delay_ms(2000);
+			  lcd_clear();
 		  }
-		  delay_ms(2000);
-		  //Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije
+	 }
+	  else if(true==incubationFinished)
+	  {
+		  counter=0; 						//vraca cnt na 0 da uzme dan kad se opet startuje inkubacija
+		  incubationStarted=false;		   //stavlja status incubationStarted u false, jer nije inkubacija aktivna
+	  }
+	  	  currentDay=time.date;
+	  	  currentMonth=time.month;
+	  	  currentHour=time.hours;
+
+
+		// delay_ms(2000);
+
+		/*  //Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije
 		  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
 		  {
 			  if(hourSts) //check uslov za prvu inicijalizaciju prev time
 			  {
-				  prevousTime=currentTime;
+				  prevousHour=currentHour;
 				  hourSts=false;
 			  }
-			  else if(prevousTime != currentTime) //ukoliko se razlikuju, doslo je do promene sata i potrebno je jaja okrenuti
+			  else if(prevousHour != currentHour) //ukoliko se razlikuju, doslo je do promene sata i potrebno je jaja okrenuti
 			  {
 				  stepperMotorControlFD(5);		//okrece jaja
-				  hourSts=true;					//daje uslov kako bi se promenio previous value
+				  prevousHour=currentHour;	   //daje uslov kako bi se promenio previous value
 			  }
 
 
-		   }
-		   */
+		   } */
+
 	  }
-  };
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
@@ -438,7 +425,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 59999;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0xffffffff;
+  htim2.Init.Period = 1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -551,41 +538,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(OTG_FS_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PDM_OUT_Pin */
-  GPIO_InitStruct.Pin = PDM_OUT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-  HAL_GPIO_Init(PDM_OUT_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : I2S3_WS_Pin */
-  GPIO_InitStruct.Pin = I2S3_WS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-  HAL_GPIO_Init(I2S3_WS_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : BOOT1_Pin ShowTempPin_Pin */
-  GPIO_InitStruct.Pin = BOOT1_Pin|ShowTempPin_Pin;
+  /*Configure GPIO pins : BOOT1_Pin ShowDatePin_Pin */
+  GPIO_InitStruct.Pin = BOOT1_Pin|ShowDatePin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : CLK_IN_Pin */
-  GPIO_InitStruct.Pin = CLK_IN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  /*Configure GPIO pins : RedButton_Pin GreenButton_Pin */
+  GPIO_InitStruct.Pin = RedButton_Pin|GreenButton_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-  HAL_GPIO_Init(CLK_IN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : FanPin_Pin StepperMotorPin4_Pin StepperMotorPin3_Pin */
   GPIO_InitStruct.Pin = FanPin_Pin|StepperMotorPin4_Pin|StepperMotorPin3_Pin;
@@ -609,28 +578,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(zeroCrossing_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : I2S3_MCK_Pin I2S3_SCK_Pin I2S3_SD_Pin */
-  GPIO_InitStruct.Pin = I2S3_MCK_Pin|I2S3_SCK_Pin|I2S3_SD_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : VBUS_FS_Pin */
-  GPIO_InitStruct.Pin = VBUS_FS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(VBUS_FS_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : OTG_FS_ID_Pin OTG_FS_DM_Pin OTG_FS_DP_Pin */
-  GPIO_InitStruct.Pin = OTG_FS_ID_Pin|OTG_FS_DM_Pin|OTG_FS_DP_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pin : OTG_FS_OverCurrent_Pin */
   GPIO_InitStruct.Pin = OTG_FS_OverCurrent_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -646,7 +593,6 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -657,9 +603,10 @@ void delay_us(unsigned long delay_us)
  	while(__HAL_TIM_GET_COUNTER(&htim5)<delay_us);
 }
 void delay_ms(unsigned long delay_ms)
-{
-		__HAL_TIM_SET_COUNTER(&htim2,0);
-		while(__HAL_TIM_GET_COUNTER(&htim2)<delay_ms);
+{		//htim2.Init.Period razlika u odnosu na delay_us
+		//__HAL_TIM_SET_COUNTER(&htim2,0);
+		count_TIM2=0;
+		while(count_TIM2<delay_ms);
 
 }
 unsigned long millis(void)

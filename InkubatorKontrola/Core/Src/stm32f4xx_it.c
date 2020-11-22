@@ -209,13 +209,94 @@ void TIM2_IRQHandler(void)
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
+  	  //Da bi timer ovako radio htim2.Init.Period mora biti veci od 0!
+  	  	 static unsigned long counterTIM2=0;
+  	  	 static unsigned  debounceCntRed=0;
+  	  	 static unsigned  debounceCntGreen=0;
+
+  	  	 count_TIM2++;
+
+  	  	 //ispod je debouncing funkcionalnost iskoriscena pomocu timera od 1ms
+
+//red button
+     	if(false==redButtonPressedStatDeb)
+     	{
+  	  	 if(true==redButtonPressedStat)
+     		{
+  	  		  debounceCntRed++;
+     		if(DEBOUNCING_TIME_MS<debounceCntRed)
+     			{
+     				redButtonPressedStatDeb=true;
+     				debounceCntRed=0;
+
+     			}
+     			else
+     			{
+     				//do nothing
+     			}
+     		}
+     	}
+     	else
+     	{
+     			//do nothing
+     	}
+     	if(true==redButtonPressedStatDeb)
+     	{
+			 if(!(HAL_GPIO_ReadPin(RedButton_GPIO_Port, RedButton_Pin)))
+			{
+				 redButtonPressedStat=false;
+				 redButtonPressedStatDeb=false;
+			}
+			 else
+			 {
+				 //do nothing
+			 }
+     	}
+ //green button
+     	if(false==greenButtonPressedStatDeb)
+     	{
+     		if(true==greenButtonPressedStat)
+     		{
+     			debounceCntGreen++;
+     			if(DEBOUNCING_TIME_MS<debounceCntGreen)
+     			{
+     				greenButtonPressedStatDeb=true;
+     				debounceCntGreen=0;
+     			}
+     			else
+     			{
+     					//do nothing
+     			}
+     		}
+     		else
+     		{
+     			 //do nothing
+     		}
+     	}
+     	else
+     	{
+     		//do nothing
+     	}
+
+     		if(true==greenButtonPressedStatDeb)
+     		{
+				if(!(HAL_GPIO_ReadPin(GreenButton_GPIO_Port, GreenButton_Pin)))
+				{
+					greenButtonPressedStat=false;
+					greenButtonPressedStatDeb=false;
+				}
+				else
+				{
+					//do nothing
+				}
+     		}
+     		else
+     		{
+     			//do nothing
+     		}
 
 
 
-	 // HAL_GPIO_TogglePin(LD4_GPIO_Port,LD4_Pin);
-
-
-	  count++;
 
   /* USER CODE END TIM2_IRQn 1 */
 }
@@ -226,12 +307,60 @@ void TIM2_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+//zeroCrossing Detection
+
 if(__HAL_GPIO_EXTI_GET_FLAG(zeroCrossing_Pin))
 {
 	kontrola_grejac(PidKorekcija);
 }
+//RedButton Pressed
+if(false==redButtonPressedStat)
+{
+	if(__HAL_GPIO_EXTI_GET_FLAG(RedButton_Pin))
+	{
+
+		redButtonPressed++;
+		redButtonPressedStat=true;
+
+	}
+	else
+	{
+		redButtonPressedStat=false;
+	}
+
+}
+else
+{
+
+}
+
+//GreenButton Pressed
+if(false==greenButtonPressedStat)
+{
+	if(__HAL_GPIO_EXTI_GET_FLAG(GreenButton_Pin))
+	{
+		greenButtonPressed++;
+		greenButtonPressedStat=true;
+
+	}
+	else
+	{
+		greenButtonPressedStat=false;
+	}
+
+}
+else
+{
+
+}
+
+//__HAL_GPIO_EXTI_CLEAR_FLAG(GreenButton_Pin);
+//__HAL_GPIO_EXTI_CLEAR_FLAG(RedButton_Pin);
+
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
@@ -247,7 +376,7 @@ void TIM5_IRQHandler(void)
   /* USER CODE END TIM5_IRQn 0 */
   HAL_TIM_IRQHandler(&htim5);
   /* USER CODE BEGIN TIM5_IRQn 1 */
- //HAL_GPIO_TogglePin(LD5_GPIO_Port,LD5_Pin);
+
   count_us++;
   /* USER CODE END TIM5_IRQn 1 */
 }

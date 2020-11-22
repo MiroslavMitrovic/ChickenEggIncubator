@@ -8,6 +8,7 @@
  */
 
 #include "BMP280.h"
+#include "variables.h"
 
 signed long temperature_raw, pressure_raw, humidity_raw;
 unsigned short dig_T1, dig_P1,dig_H1,dig_H3;
@@ -131,4 +132,6 @@ volatile	double p=1048576.0-(double)pressure_raw;
 	pressure=p;
 	relative_humidity=h;
 	altitude=44330.0f*(1-powf(pressure/101325.0f,1.0f/5.255f));//altitude=((powf(101325.0/pressure, 1/5.257f)-1)*(temperature+273.15f))/0.0065f;
+	temperatura=temperature;
+	RelVlaz=relative_humidity;
 }

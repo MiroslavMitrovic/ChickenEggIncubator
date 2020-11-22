@@ -28,7 +28,8 @@ Setup variable declaration macros.
 # define _DECL
 # define _INIT(x)  = x
 #endif
-
+#define ULONG_MAX 					0xFFFFFFFFUL
+#define DEBOUNCING_TIME_MS 			50UL
 /*----------------------------------------------
 Declare variables as follows:
 
@@ -41,7 +42,7 @@ the varialbe, it may be declared as follows:
 _DECL [standard variable declaration];
 ----------------------------------------------*/
 
-_DECL volatile unsigned long count _INIT(0);//count ms
+_DECL volatile unsigned long count_TIM2 _INIT(0);//count ms
 _DECL int period _INIT(0);//period in ms
 _DECL int period_cnt _INIT(0);//
 _DECL int oldPeriod _INIT(0);//
@@ -73,6 +74,17 @@ _DECL char RH_val [6];
 _DECL double RHT_val[2];
 _DECL uint8_t get_time[7];
 _DECL volatile unsigned int PidKorekcija _INIT(0);
-
+_DECL char lcd_string [100];
+_DECL  float temperatura _INIT(0);
+_DECL  float RelVlaz	_INIT(0);
+_DECL  volatile unsigned long debouncingCnt _INIT(0);
+_DECL  volatile bool debouncingStat _INIT(0);
+_DECL  volatile  unsigned long redButtonPressed _INIT(0);
+_DECL  volatile bool redButtonPressedStat _INIT(0);
+_DECL  volatile unsigned long greenButtonPressed _INIT(0);
+_DECL  volatile bool greenButtonPressedStat _INIT(0);
+_DECL  volatile bool redButtonPressedStatDeb _INIT(0);
+_DECL  volatile bool greenButtonPressedStatDeb _INIT(0);
+_DECL  volatile uint8_t buttonPressedCnt _INIT(0);
 #endif
 //

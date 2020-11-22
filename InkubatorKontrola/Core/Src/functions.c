@@ -306,6 +306,273 @@ void stepperMotorControlFD(int delay)
 	}
 
 };
+void show_time(void)
+{
+	char * strptr;
+	sprintf(lcd_string,"Vreme:%02d:%02d:%02d",time.hours, time.minutes,time.seconds); //string koji ispisuje vreme
+	delay_ms(50);
+	lcd_put_cur(1,0);
+	delay_ms(50);
+	lcd_send_string(lcd_string);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+	  *(strptr++)=0;
+	}
+};
+void show_date(void)
+{
+	char * strptr;
+	sprintf(lcd_string,"Datum:%02d-%02d-20%02d",time.date, time.month,time.year);	//string koji ispisuje datum
+	delay_ms(50);
+	lcd_put_cur(0,0);
+	delay_ms(50);
+	lcd_send_string(lcd_string);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+	  *(strptr++)=0;
+	}
+};
+void show_tempAndHumidity(void)
+{
+	char * strptr;
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		*(strptr++)=0;
+	}
+
+	delay_ms(30);
+	lcd_put_cur(0, 0);
+	delay_ms(30);
+	sprintf(lcd_string,"T=%2.1f[degC]",temperatura);
+	lcd_send_string(lcd_string);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		*(strptr++)=0;
+	}
+	delay_ms(30);
+	lcd_put_cur(1, 0);
+	delay_ms(30);
+	sprintf(lcd_string,"RV=%2.1f[%%]",RelVlaz);
+	lcd_send_string(lcd_string);
+};
+void show_lowHumWarning(void)
+{
+	char * strptr;
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		*(strptr++)=0;
+	}
+	lcd_clear();
+	delay_ms(50);
+	lcd_put_cur(0, 0);
+	strcpy(lcd_string,"Niska vlaznost!");
+	lcd_send_string(lcd_string);
+	delay_ms(50);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		  *(strptr++)=0;
+	}
+
+};
+void start_menu_1(void){
+	char * strptr;
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			*(strptr++)=0;
+		}
+		lcd_clear();
+		delay_ms(50);
+		lcd_put_cur(0, 0);
+		strcpy(lcd_string,"*Inkubator v1.0*");
+		lcd_send_string(lcd_string);
+		delay_ms(50);
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			  *(strptr++)=0;
+		}
+		lcd_put_cur(1, 0);
+		strcpy(lcd_string,"*Miroslav M*");
+		lcd_send_string(lcd_string);
+		delay_ms(50);
+		strptr=lcd_string;
+};
+void start_menu_2(void){
+	char * strptr;
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			*(strptr++)=0;
+		}
+		lcd_clear();
+		delay_ms(50);
+		lcd_put_cur(0, 0);
+		strcpy(lcd_string,"*Tel:0691311063*");
+		lcd_send_string(lcd_string);
+		delay_ms(50);
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			  *(strptr++)=0;
+		}
+};
+void start_menu_3(void){
+	char * strptr;
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			*(strptr++)=0;
+		}
+		lcd_clear();
+		delay_ms(50);
+		lcd_put_cur(0, 0);
+		strcpy(lcd_string,"1.Start Inkubacij");
+		lcd_send_string(lcd_string);
+		delay_ms(50);
+		strptr=lcd_string;
+		while(*(strptr) !='\0')
+		{
+			  *(strptr++)=0;
+		}
+		lcd_put_cur(1, 0);
+		strcpy(lcd_string,"2.Prikaz Temp");
+		lcd_send_string(lcd_string);
+		delay_ms(50);
+		strptr=lcd_string;
+};
+void incub_menu_1(void)
+{
+	char * strptr;
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		*(strptr++)=0;
+	}
+	lcd_clear();
+	delay_ms(50);
+	lcd_put_cur(0, 0);
+	strcpy(lcd_string,"*Inkubacija*");
+	lcd_send_string(lcd_string);
+	delay_ms(50);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+	  *(strptr++)=0;
+	}
+	lcd_put_cur(1, 0);
+	strcpy(lcd_string,"*Zapoceta*");
+	lcd_send_string(lcd_string);
+	delay_ms(50);
+	strptr=lcd_string;
+};
+void incub_menu_3(uint8_t days, uint8_t hours)
+{
+	char * strptr;
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		*(strptr++)=0;
+	}
+	lcd_clear();
+	delay_ms(50);
+	lcd_put_cur(0, 0);
+	strcpy(lcd_string,"Vreme do kraja");
+	lcd_send_string(lcd_string);
+	delay_ms(50);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+	  *(strptr++)=0;
+	}
+	lcd_put_cur(1, 0);
+	//remaining days display
+	itoa(days,lcd_string,10);
+	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		strptr++;
+	}
+	strcpy(strptr," Dana ");
+	while(*(strptr) !='\0')
+	{
+		strptr++;
+	}
+	itoa(hours,strptr,10);
+	while(*(strptr) !='\0')
+	{
+		strptr++;
+	}
+	strcpy(strptr," Sati");
+	lcd_send_string(lcd_string);
+	delay_ms(50);
+	strptr=lcd_string;
+};
+bool debouncingFunct(ulong debounceVal)
+{
+	static ulong startDebounceTime=0;
+	static ulong currentDebounceTime=0;
+	static ulong dbncCnt=0;
+	if(0==dbncCnt)
+	{
+		startDebounceTime=millis();
+	}
+	else
+	{
+		//do nothing
+	}
+
+	currentDebounceTime=millis();
+
+	//Debouncing check
+	if(currentDebounceTime>(startDebounceTime+debounceVal))
+	{
+		debouncingStat=true;
+		dbncCnt=0;
+	}
+	else
+	{
+		debouncingStat=false;
+		dbncCnt++;
+	}
+
+	return debouncingStat; //returns the status of completed debouncing
+
+
+
+}
+void switchHold(ulong HoldTime)
+{
+	ulong StarTime_swH=millis();
+	ulong HoldTime_swH=HoldTime;
+	if(0==((StarTime_swH+HoldTime_swH) % HoldTime))
+		{
+
+		}
+
+
+}
+/*void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance==TIM2) //check if the interrupt comes from TIM2
+        {
+    	 count++;
+    		  if(0==HAL_GPIO_ReadPin(RedButton_GPIO_Port, RedButton_Pin))
+    		  {
+    			  redButtonPressedStat=false;
+    		  }
+    		  if(0==HAL_GPIO_ReadPin(GreenButton_GPIO_Port,GreenButton_Pin))
+    		  {
+    			  greenButtonPressedStat=false;
+    		  }
+        }
+}*/
 
 
 

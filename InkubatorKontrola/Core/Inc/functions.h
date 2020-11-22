@@ -31,7 +31,19 @@ void lcd_put_cur(int row, int col);
 void lcd_clear (void);
 void setpointChange(void);
 void stepperMotorControlFD(int);
+void show_time(void);
+void show_date(void);
+void show_tempAndHumidity(void);
+void show_lowHumWarning(void);
+void start_menu_1(void);
+void start_menu_2(void);
+void start_menu_3(void);
+bool debouncingFunct(unsigned long debounceVal);
+void switchHold(unsigned long holdTime);
+void incub_menu_1(void);
+void incub_menu_3(uint8_t days, uint8_t hours);
 
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 /*Struct za pakovanje podataka sa eksternog RTC*/
 typedef  struct {
 	uint8_t seconds;
