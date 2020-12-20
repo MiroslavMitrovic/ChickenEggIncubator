@@ -112,7 +112,7 @@
  * Enable the following define to use a RTOS.
  * Update the call to the millisecond delay with the one of
  * your RTOS and add the includes in STM32F4.c  */
-#define GLCD_USE_RTOS
+/*#define GLCD_USE_RTOS
 
 #ifdef GLCD_USE_RTOS
   #define GLCD_RTOS_DELAY_FCN 		DelayTask(ms);

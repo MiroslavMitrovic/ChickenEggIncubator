@@ -45,9 +45,10 @@
 /* Includes for RTOS */
 /*#ifdef GLCD_USE_RTOS
   #include "BRTOS.h"
-#endif
 */
-void delay_ms(uint32_t ms);
+#endif
+
+//void delay_ms(uint32_t ms);
 
 //#define BACKLIGHT_INVERT	// Uncomment if LED backlight turn on with low value
 
@@ -293,7 +294,7 @@ void glcd_reset(void)
 	HAL_GPIO_WritePin(CS_SPI_GPIO_Port, CS_SPI_Pin,GPIO_PIN_SET);
 	//GLCD_DESELECT();
 }
-
+/*
 void delay_ms(uint32_t ms){
 
 #ifndef GLCD_USE_RTOS
@@ -315,3 +316,4 @@ void delay_ms(uint32_t ms){
 
 
 #endif
+*/

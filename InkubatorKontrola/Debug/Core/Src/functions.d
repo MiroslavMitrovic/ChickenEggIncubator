@@ -30,7 +30,18 @@ Core/Src/functions.o: ../Core/Src/functions.c ../Core/Inc/functions.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Core/Inc/variables.h ../Core/Inc/main.h
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/devices/STM32F4.h \
+ ../Core/Inc/main.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/controllers/PCD8544.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_devices.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_controllers.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_graphics.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_graphs.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_text_tiny.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_text.h \
+ /home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/unit_tests.h \
+ ../Core/Inc/../../LCD/fonts/font5x7.h ../Core/Inc/variables.h
 
 ../Core/Inc/functions.h:
 
@@ -100,6 +111,28 @@ Core/Src/functions.o: ../Core/Src/functions.c ../Core/Inc/functions.h \
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 
-../Core/Inc/variables.h:
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/devices/STM32F4.h:
 
 ../Core/Inc/main.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/controllers/PCD8544.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_devices.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_controllers.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_graphics.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_graphs.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_text_tiny.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/glcd_text.h:
+
+/home/beta/git/ChickenEggIncubator/InkubatorKontrola/LCD/unit_tests.h:
+
+../Core/Inc/../../LCD/fonts/font5x7.h:
+
+../Core/Inc/variables.h:

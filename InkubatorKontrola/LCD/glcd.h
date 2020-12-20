@@ -78,7 +78,11 @@
 #elif defined(GLCD_DEVICE_STM32F4XX)
 	#include <stm32f4xx.h>
 	#include "devices/STM32F4.h"
-	extern void delay_ms(uint32_t ms);
+	#include <stm32f4xx.h>
+	#include "stm32f4xx_hal.h"
+	#include "stm32f4xx_hal_gpio.h"
+	#include "main.h"
+	//extern void delay_ms(uint32_t ms);
 	#define PROGMEM
 
 #elif defined(GLCD_DEVICE_PIC24H)

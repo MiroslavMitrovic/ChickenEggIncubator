@@ -30,6 +30,8 @@ Setup variable declaration macros.
 #endif
 #define ULONG_MAX 					0xFFFFFFFFUL
 #define DEBOUNCING_TIME_MS 			50UL
+#define TRUE 						1u
+#define FALSE						0u
 /*----------------------------------------------
 Declare variables as follows:
 
@@ -86,5 +88,8 @@ _DECL  volatile bool greenButtonPressedStat _INIT(0);
 _DECL  volatile bool redButtonPressedStatDeb _INIT(0);
 _DECL  volatile bool greenButtonPressedStatDeb _INIT(0);
 _DECL  volatile uint8_t buttonPressedCnt _INIT(0);
+_DECL  volatile const uint8_t ptrVal2;
+_DECL volatile uint8_t *const ui8_ptrInkubStatus _INIT(&ptrVal2);
+
 #endif
 //

@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+//#include "unit_tests.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,10 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SETPOINT_TEMP 									39 		//zeljena temperatura
-#define SETPOINT_HUM  									65 		//zeljena vlaznost
-#define DHT12_ADDRESS_I2C 								0xB8	//ADRESA DHT12 SENZORA
-#define DS3231_ADDRESS_I2C								0xD0	//ADRESA DS3231 RTC
+
 
 /* USER CODE END PD */
 
@@ -83,7 +81,7 @@ static void MX_TIM5_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static int counter_test=0;
 /* USER CODE END 0 */
 
 /**
@@ -94,17 +92,25 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+#define TIME_FOR_COMPLETION			30240u
+	uint8_t startDay,startMonth,startHour,StartMinute;															//start day,month,hour,minute
+	uint8_t currentDay,currentMonth,currentHour,currentMinute,previousHour,previousDay,previousMinute;			//current and previous month,day,hour, minute
 
-	uint8_t startDay,startMonth; 										//dan i mesec pocetka procesa inkubacije
-	uint8_t currentDay,currentMonth,currentHour,prevousHour,previousDay;//trenutni dan i mesec u toku inkubacije
- 	uint8_t remainingDays,remainingHours,currentDayCnt;
-
-	bool incubationStarted=false;
-	bool incubationFinished=false;
-	static bool hourSts=true;
-	static bool daySts=true;
+ 	static uint8_t  remainingDays=0;
+ 	static uint16_t	remainingHours=0;
+ 	static uint8_t 	currentDayCnt=0;
+ 	static uint16_t	remainingMinutes=0;
+ 	static uint8_t	curentHrsCnt=0;
+ 	static uint8_t	currentMinCnt=0;
+	bool incubationStarted=FALSE;
+	bool incubationFinished=FALSE;
+	bool stepperControlActive=FALSE;
+	static bool daySts=TRUE;
+	static bool hourSts=TRUE;
+	static bool minSts=TRUE;
 	int adrFound=0;
-	volatile static menu_cnt;
+	int RHcnt=0;
+	volatile static uint8_t menu_cnt;
 
   /* USER CODE END 1 */
 
@@ -133,160 +139,218 @@ int main(void)
   /* USER CODE BEGIN 2 */
 HAL_TIM_Base_Start_IT(&htim2);
 HAL_TIM_Base_Start_IT(&htim5);
-
-
+//lcd initialization and backlight
+glcd_init();
+glcd_enable_backlight(ENABLE);
+//check to see if there is connection on I2C bus
 adrFound=find_I2C_deviceAddress();
-lcd_init ();
+
+for(int i=176;i<255;i++)
+	{
+		if(HAL_I2C_IsDeviceReady(&hi2c1,i,1,10)==HAL_OK)
+		{
+			break;
+		}
+
+	}
+//BME280 initialization
 BMP280_init(0x57,0x48,0x05);// osrs_t 010 x2, osrs_p 16 101, mode normal 11 // standby time 500ms 100, filter 16 100, SPI DIS 0
 BMP280_calc_values();
-lcd_clear();
-getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
+//Get Time and date values from DS3231 RTC that is connected on I2C bus
+getTimeDate_DS3231(DS3231_ADDRESS_I2C);
 delay_ms(50);
+//Intro menu
 start_menu_1();
 delay_ms(2000);
+//Menu for choosing options;
 start_menu_2();
-delay_ms(2000);
-show_date();
-delay_ms(50);
-show_time();
-delay_ms(2000);
-start_menu_3();
+glcd_clear_buffer();
+//show_date_and_time();
+//delay_ms(2000);
+//show_tempAndHumidity();
+//delay_ms(2000);
+//incub_menu_1(22,22,22);
+//delay_ms(2000);
+//incub_menu_2(23,23,23);
+//start_menu_3();
 //glcd_test_circles();
-HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
-//setTime_DS3231(DS3231_ADDRESS_I2C, 00, 43 ,18 , 3, 22, 9, 20);
+//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
+//setTime_DS3231(DS3231_ADDRESS_I2C, 0, 15 ,22 , 0, 13, 12, 20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //menu 1 je izabran
-	  if(true==greenButtonPressedStatDeb)
-	  	  {
-		  	  if(false==incubationStarted)
-		  	  {
-		  	  incubationStarted=true;
-		  	  incub_menu_1();
-		  	  delay_ms(2000);
+
+
+
+		  	  //incub_menu_2(22,22,22);	//set default value
+		  	 // delay_ms(2000);
+		  	  HAL_Delay(100);
+
 		  	  show_tempAndHumidity();
-		  	  }
-		  	  else
-		  	  {
-		  		 //do nothing
-		  	  }
-	  	  }
-	  	  else
-	  	  {
-	  		  //do nothing
-	  	  }
-	  BMP280_calc_values();
- 	  //delay_ms(500);
- 	  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//vadi trenutno vreme
-	  //show_tempAndHumidity();
 
 
-	  static float StvarnaTemperatura=0.0;
-	  static float RelativnaVlaznost=0.0;
+			  //delay_ms(500);
+			  getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//extract current time
+			  //show_tempAndHumidity();
 
 
-	  StvarnaTemperatura=temperature;
-	 //DODAJ FILTER ZA UPROSECAVANJE VREDNOSTI VLAZNOSTI VAZDUHA//
-	  RelativnaVlaznost=relative_humidity;
-	 //stepperMotorControlFD(15);
-	 //incubationStarted=true;
 
 
+	  //initialiaziaton of variables
+      //extracts current time into variables
+	  currentDay=time.date;
+	  currentMonth=time.month;
+	  currentHour=time.hours;
+	  currentMinute=time.minutes;
+	  uint8_t InkubStatus=*(ui8_ptrInkubStatus);
 
 	  static uint8_t counter=0;
-	  if(true==incubationStarted)
+	  if(TRUE==InkubStatus)
 	 {
 		  //vadi vreme pocetka inkubacije
 		  if(0>=counter)
 		  {
 			  startDay=time.date;
 			  startMonth=time.month;
-		  }
-		  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
-		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
-		  if(0==PidKorekcija)
-		  {
-			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//ukljuci ventilator
+			  startHour=time.hours;
+			  StartMinute=time.minutes;
 		  }
 		  else
 		  {
-			  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_RESET);//iskljuci ventilator
+			  //do nothing
 		  }
+
+		  PidKorekcija=PID_control(SETPOINT_TEMP, Kp,Ki,Kd,temperature);
+		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_SET);//Turn ON FAN
+
 		  counter++;
 		  if(255==counter)
 		  {
-			  counter=1; //counter reset kad overflowuje
+			  counter=1; //counter reset when it overflows
 		  }
-		  show_tempAndHumidity();
-
-		  if(true==daySts)
+		  //TODO MM to add calculation for time remaining,
+		  //days comparesescent
+		  if(TRUE==daySts)
 		  {
 			  previousDay=currentDay;
-			  daySts=false;
 			  currentDayCnt=0;
-
+			  daySts=false;
 		  }
 		  else if(previousDay != currentDay)
 		  {
 			  currentDayCnt++;
 			  previousDay=currentDay;
 		  }
-		  //days remaining
-		  if(true==redButtonPressedStatDeb)
+		  //hours comparesescent
+		  if(TRUE==hourSts)
 		  {
-			  if(currentMonth==startMonth)
-			  {
-			  remainingDays=25-currentDayCnt;
-			  	  if(0==remainingDays)
-			  	  {
-			  		currentDayCnt=0; //reset days counter
-			  		incubationFinished=true; //zavrsena inkubacija
-			  	  }
-			  }
-			  incub_menu_3(remainingDays, 1);
-			  delay_ms(2000);
-			  lcd_clear();
+			  previousHour=currentHour;
+			  curentHrsCnt=0;
+			  hourSts=FALSE;
 		  }
-	 }
+		 else if(previousHour != currentHour)
+		 {
+			 curentHrsCnt++;
+			 previousHour=currentHour;
+			 stepperControlActive=TRUE;
+		  }
+		  //minutes comparesescent
+ 		  if(TRUE==minSts)
+ 		  {
+ 			  previousMinute=currentMinute;
+ 			  currentMinCnt=0;
+ 			  minSts=FALSE;
+ 		  }
+ 		 else if(previousMinute != currentMinute)
+ 		 {
+ 			currentMinCnt++;
+ 			previousMinute=currentMinute;
+ 		  }
+
+
+
+
+ 		  	  counter_test++;
+ 		  	  //Days remaining
+			  remainingDays=(TIME_FOR_COMPLETION/1440)-currentDayCnt;
+			  //Hours remaining
+			  remainingHours=(TIME_FOR_COMPLETION/60)-curentHrsCnt;
+			  remainingHours%=24;		//hours for 21 days
+			  //Minutes remaining
+			  remainingMinutes=TIME_FOR_COMPLETION-currentMinCnt;
+			  remainingMinutes%=60;	  //minutes for 21 days
+
+
+
+			  if(0==remainingDays)
+			  {
+			  	currentDayCnt=0; //reset days counter
+
+
+			  	if(0==remainingHours)
+			  	{
+
+			  		if(0==remainingMinutes)
+			  		{
+			  			incubationFinished=TRUE; //zavrsena inkubacija
+			  		}
+			  		else
+			  		{
+			  			//do nothing
+			  		}
+
+			  	}
+			  	else
+			  	{
+			  		//do nothing
+			  	}
+
+
+			  }
+			  else
+			  {
+				  //do nothing
+			  }
+
+
+			  delay_ms(1);
+
+
+
+	  }
 	  else if(true==incubationFinished)
 	  {
-		  counter=0; 						//vraca cnt na 0 da uzme dan kad se opet startuje inkubacija
-		  incubationStarted=false;		   //stavlja status incubationStarted u false, jer nije inkubacija aktivna
+		  counter=0; 						//returns counter to zero, to start incubation from begining
+		  incubationStarted=FALSE;		   //puts incubation status into false, because incubation is not active
+		  HAL_GPIO_WritePin(FanPin_GPIO_Port, FanPin_Pin, GPIO_PIN_RESET);//Turn OFF FAN10
 	  }
-	  	  currentDay=time.date;
-	  	  currentMonth=time.month;
-	  	  currentHour=time.hours;
 
 
-		// delay_ms(2000);
 
-		/*  //Okretanje jaja na svakih sat vremena u toku 19 dana procesa inkubacije
-		  if((((startDay-currentDay)<19) && (startMonth==currentMonth)) || ((currentMonth>startMonth) && (((30-startDay)+currentDay)<19)))
+		delay_ms(1);
+
+		  //Turning of eggs at each hour in time of incubation for 19 days
+		if(19>currentDayCnt)
 		  {
-			  if(hourSts) //check uslov za prvu inicijalizaciju prev time
+			  if(TRUE==stepperControlActive)
 			  {
-				  prevousHour=currentHour;
-				  hourSts=false;
-			  }
-			  else if(prevousHour != currentHour) //ukoliko se razlikuju, doslo je do promene sata i potrebno je jaja okrenuti
-			  {
-				  stepperMotorControlFD(5);		//okrece jaja
-				  prevousHour=currentHour;	   //daje uslov kako bi se promenio previous value
+				  stepperMotorControlFD(5);			//turns the eggs
+			   	  stepperControlActive=FALSE;		//resets the state for stepper motor ctivation
 			  }
 
 
-		   } */
+
+		   }
 
 	  }
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+#undef TIME_FOR_COMPLETION
   /* USER CODE END 3 */
 }
 
@@ -389,7 +453,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -512,10 +576,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(CS_I2C_SPI_GPIO_Port, CS_I2C_SPI_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, RESET_SPI_Pin|CS_SPI_Pin|SPI_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(DC_SPI_GPIO_Port, DC_SPI_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, FanPin_Pin|StepperMotorPin4_Pin|StepperMotorPin3_Pin, GPIO_PIN_RESET);
@@ -524,12 +591,12 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, StepperMotorPin2_Pin|StepperMotorPin1_Pin|FiringPin_Pin|LD4_Pin
                           |LD3_Pin|LD5_Pin|LD6_Pin|Audio_RST_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : CS_I2C_SPI_Pin */
-  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin;
+  /*Configure GPIO pins : RESET_SPI_Pin CS_SPI_Pin SPI_LED_Pin */
+  GPIO_InitStruct.Pin = RESET_SPI_Pin|CS_SPI_Pin|SPI_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(CS_I2C_SPI_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : OTG_FS_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = OTG_FS_PowerSwitchOn_Pin;
@@ -543,6 +610,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : DC_SPI_Pin */
+  GPIO_InitStruct.Pin = DC_SPI_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(DC_SPI_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BOOT1_Pin ShowDatePin_Pin */
   GPIO_InitStruct.Pin = BOOT1_Pin|ShowDatePin_Pin;

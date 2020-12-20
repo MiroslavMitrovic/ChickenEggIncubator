@@ -127,7 +127,7 @@ void glcd_PCD8544_init(void) {
 #if defined(PCD8544_CONTRAST)
 	glcd_command(PCD8544_SET_VOP | PCD8544_CONTRAST); 
 #else
-	glcd_command(PCD8544_SET_VOP | 80);
+	glcd_command(PCD8544_SET_VOP | 300);
 #endif
 	
 	/* Back to standard instructions */

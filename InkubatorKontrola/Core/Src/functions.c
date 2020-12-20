@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stm32f4xx_hal_gpio.h>
+#include <stdbool.h>
 #define LCD_I2C_SLAVE_ADDRESS 0x7E 						//adresa i2c interfejsa za LCD
 extern TIME time;
 extern I2C_HandleTypeDef hi2c1; 						//stavi hi2c koji koristis
@@ -320,44 +321,72 @@ void show_time(void)
 	  *(strptr++)=0;
 	}
 };
-void show_date(void)
+void show_date_and_time(void)
 {
 	char * strptr;
-	sprintf(lcd_string,"Datum:%02d-%02d-20%02d",time.date, time.month,time.year);	//string koji ispisuje datum
-	delay_ms(50);
-	lcd_put_cur(0,0);
-	delay_ms(50);
-	lcd_send_string(lcd_string);
+	sprintf(lcd_string,"Datum:%02d-%02d-%02d",time.date, time.month,time.year);	//string koji ispisuje datum
+	GLCD_TEXT_INIT();
+	glcd_clear_buffer();
+	glcd_tiny_draw_string(0,0,lcd_string);
 	strptr=lcd_string;
 	while(*(strptr) !='\0')
 	{
 	  *(strptr++)=0;
 	}
+	sprintf(lcd_string,"Vreme:%02d:%02d:%02d",time.hours, time.minutes,time.seconds); //string koji ispisuje vreme
+	glcd_tiny_draw_string(0,2,lcd_string);
+	glcd_write();
+
+
 };
 void show_tempAndHumidity(void)
 {
 	char * strptr;
 	strptr=lcd_string;
+	float lcd_temperature=0.0;
+	float lcd_humidity=0.0;
+	float temp_array[10];
+	float hum_array[10];
+	uint8_t array_size;
+
+
 	while(*(strptr) !='\0')
 	{
 		*(strptr++)=0;
 	}
 
-	delay_ms(30);
-	lcd_put_cur(0, 0);
-	delay_ms(30);
-	sprintf(lcd_string,"T=%2.1f[degC]",temperatura);
-	lcd_send_string(lcd_string);
+//	delay_ms(30);
+//	lcd_put_cur(0, 0);
+//	delay_ms(30);
+
+
+	for(int i=0;i<10;i++)
+	{
+		//initalizaton of values for filtering
+		BMP280_calc_values();
+		temp_array[i]=temperatura;
+		hum_array[i]=RelVlaz;
+		HAL_Delay(100);
+	}
+	// filtering of values
+	//Temperature
+	array_size = (	sizeof(temp_array) /sizeof(float)	);
+	filter_avg(temp_array,array_size,&lcd_temperature);
+	//humidity
+	array_size = (	sizeof(hum_array)/sizeof(float)	);
+	filter_avg(hum_array,array_size,&lcd_humidity);
+	//LCD write
+	sprintf(lcd_string,"T=%2.1f[degC]",lcd_temperature);
+	glcd_tiny_draw_string(0,0,lcd_string);
 	strptr=lcd_string;
 	while(*(strptr) !='\0')
 	{
 		*(strptr++)=0;
 	}
-	delay_ms(30);
-	lcd_put_cur(1, 0);
-	delay_ms(30);
 	sprintf(lcd_string,"RV=%2.1f[%%]",RelVlaz);
-	lcd_send_string(lcd_string);
+	glcd_tiny_draw_string(0,2,lcd_string);
+	glcd_write();
+
 };
 void show_lowHumWarning(void)
 {
@@ -381,73 +410,232 @@ void show_lowHumWarning(void)
 
 };
 void start_menu_1(void){
-	char * strptr;
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			*(strptr++)=0;
-		}
-		lcd_clear();
-		delay_ms(50);
-		lcd_put_cur(0, 0);
-		strcpy(lcd_string,"*Inkubator v1.0*");
-		lcd_send_string(lcd_string);
-		delay_ms(50);
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			  *(strptr++)=0;
-		}
-		lcd_put_cur(1, 0);
-		strcpy(lcd_string,"*Miroslav M*");
-		lcd_send_string(lcd_string);
-		delay_ms(50);
-		strptr=lcd_string;
-};
+		GLCD_TEXT_INIT();
+		glcd_clear_buffer();
+		glcd_tiny_draw_string(0,0,"*Inkubator v1.0*");
+		glcd_tiny_draw_string(0, 1, "Miroslav Mitrovic");
+		glcd_tiny_draw_string(0, 3, "Tel:0691311063");
+		glcd_write();
+}
 void start_menu_2(void){
-	char * strptr;
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			*(strptr++)=0;
-		}
-		lcd_clear();
-		delay_ms(50);
-		lcd_put_cur(0, 0);
-		strcpy(lcd_string,"*Tel:0691311063*");
-		lcd_send_string(lcd_string);
-		delay_ms(50);
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			  *(strptr++)=0;
-		}
+
+			//enum for menu items
+			enum menu
+			{
+				InitMenu,
+				StartInkub,
+				ShowTempAndHumidity,
+				Settings
+			};
+			//initialization for menu status counter
+			uint8_t menu_status_cnt=0; //incubation start
+			//uint8_t init_menu_stat=0;
+
+
+			GLCD_TEXT_INIT();
+
+
+			while(1){
+				//cycle trough menu on next item
+
+				if(InitMenu==menu_status_cnt)
+				{
+					glcd_clear_buffer();
+					glcd_tiny_draw_string(0, 1,	"1.Start Inkub");
+					glcd_tiny_draw_string(0, 3,	"2.Prikaz T/RH");
+					glcd_tiny_draw_string(0, 5,	"3.Podesavanja");
+					glcd_draw_rect(0, 5, 84, 13, BLACK); 	//Adds the rectangle over the menu item 1
+					glcd_write();
+					menu_status_cnt++;
+					HAL_Delay(90);
+
+				}
+				else
+				{
+					//do nothing
+				}
+//				HAL_Delay(50);
+				if((true==greenButtonPressedStatDeb) &&
+						(true!=redButtonPressedStatDeb) && (StartInkub==menu_status_cnt))
+				{
+					glcd_draw_rect(0, 5, 84, 13, WHITE);	//removes the rectangle over the menu item 1
+					glcd_draw_rect(0, 21, 84, 12, BLACK);	//adds the rectangle over the menu item 2
+					glcd_write();
+					HAL_Delay(90);
+//					//if the switch is still active, values will be slowly switched
+//					if((true==greenButtonPressedStatDeb) &&
+//					(true!=redButtonPressedStatDeb) && (StartInkub==menu_status_cnt))
+//					{
+//						switchHold(500);
+//					}
+//					else
+//					{
+//						//do nothing
+//					}
+					menu_status_cnt++;
+
+				}
+				else
+				{
+						//do nothing
+				}
+//				HAL_Delay(50);
+
+				if((true==redButtonPressedStatDeb)&&
+						(true!=greenButtonPressedStatDeb) && (StartInkub==menu_status_cnt))
+				{
+			 	  //getTimeDate_DS3231(DS3231_ADDRESS_I2C);	//extract current time
+			 	  incub_menu_1(25, 0, 0);					//time of 25 days necessary for incubation completion
+			 	  break;
+				}
+				else
+				{
+							//do nothing
+				}
+//				HAL_Delay(50);
+
+				if((true==greenButtonPressedStatDeb) &&
+					(true!=redButtonPressedStatDeb) &&(ShowTempAndHumidity==menu_status_cnt))
+				{
+
+					glcd_draw_rect(0, 21, 84, 12, WHITE);	//Removes the rectangle over the menu item 2
+					glcd_draw_rect(0, 37, 84, 12, BLACK);	//adds the rectangle over the menu item 3
+					glcd_write();
+					menu_status_cnt++;
+					HAL_Delay(90);
+
+				}
+				else
+				{
+					//do nothing
+				}
+//				HAL_Delay(50);
+
+				if((true==redButtonPressedStatDeb)&&
+				(true!=greenButtonPressedStatDeb) && (ShowTempAndHumidity==menu_status_cnt))
+				{
+				glcd_clear_buffer();
+				show_tempAndHumidity();							//shows temperature and humidity on LCD
+				HAL_Delay(10000);
+				break;
+
+				}
+				else
+				{
+					//do nothing
+				}
+//				HAL_Delay(50);
+
+				if((true==greenButtonPressedStatDeb) &&
+					(true!=redButtonPressedStatDeb) &&(Settings==menu_status_cnt))
+				{
+					glcd_draw_rect(0, 37, 84, 12, WHITE);	//Removes the rectangle over the menu item 3
+
+					glcd_write();
+					menu_status_cnt++;
+					if(Settings<menu_status_cnt)
+					{
+						menu_status_cnt=0;
+					}
+					HAL_Delay(90);
+
+				}
+				else
+				{
+					//do nothing
+				}
+//				HAL_Delay(50);
+
+			}
+
+
+
+//			HAL_Delay(5000);
+//			glcd_draw_rect(0, 5, 84, 13, WHITE);
+//			glcd_draw_rect(0, 21, 84, 12, BLACK);
+//			glcd_write();
+
+
+
 };
 void start_menu_3(void){
-	char * strptr;
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			*(strptr++)=0;
-		}
-		lcd_clear();
-		delay_ms(50);
-		lcd_put_cur(0, 0);
-		strcpy(lcd_string,"1.Start Inkubacij");
-		lcd_send_string(lcd_string);
-		delay_ms(50);
-		strptr=lcd_string;
-		while(*(strptr) !='\0')
-		{
-			  *(strptr++)=0;
-		}
-		lcd_put_cur(1, 0);
-		strcpy(lcd_string,"2.Prikaz Temp");
-		lcd_send_string(lcd_string);
-		delay_ms(50);
-		strptr=lcd_string;
+//	char * strptr;
+//		strptr=lcd_string;
+//		while(*(strptr) !='\0')
+//		{
+//			*(strptr++)=0;
+//		}
+//		lcd_clear();
+//		delay_ms(50);
+//		lcd_put_cur(0, 0);
+//		strcpy(lcd_string,"1.Start Inkubacij");
+//		lcd_send_string(lcd_string);
+//		delay_ms(50);
+//		strptr=lcd_string;
+//		while(*(strptr) !='\0')
+//		{
+//			  *(strptr++)=0;
+//		}
+//		lcd_put_cur(1, 0);
+//		strcpy(lcd_string,"2.Prikaz Temp");
+//		lcd_send_string(lcd_string);
+//		delay_ms(50);
+//		strptr=lcd_string;
 };
-void incub_menu_1(void)
+void incub_menu_1(uint8_t days, uint8_t hours, uint8_t minutes)
+{
+
+
+
+		GLCD_TEXT_INIT();
+		glcd_clear_buffer();
+		glcd_tiny_draw_string(0,0,	"*Inkubacija Zapoceta*");
+		glcd_tiny_draw_string(0, 2,	"Vreme do kraja:");
+
+			char * strptr;
+			strptr=lcd_string;
+			while(*(strptr) !='\0')
+			{
+				*(strptr++)=0;
+			}
+		//remaining days display
+			itoa(days,lcd_string,10);
+			strptr=lcd_string;
+			while(*(strptr) !='\0')
+			{
+				strptr++;
+			}
+			strcpy(strptr," Dana ");
+			while(*(strptr) !='\0')
+			{
+				strptr++;
+			}
+			itoa(hours,strptr,10);
+			while(*(strptr) !='\0')
+			{
+				strptr++;
+			}
+			strcpy(strptr," Sata ");
+			while(*(strptr) !='\0')
+			{
+				strptr++;
+			}
+			itoa(minutes,strptr,10);
+			while(*(strptr) !='\0')
+			{
+				strptr++;
+			}
+			strcpy(strptr," Minuta");
+			glcd_tiny_draw_string(0, 3,lcd_string);
+			glcd_write();
+
+			*(ui8_ptrInkubStatus)=TRUE; //triggers incubation phase
+			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Startuje NVIC interrupta za zero crossing
+
+
+};
+//on each change values will be updated and shown on request
+void incub_menu_2(uint8_t days, uint8_t hours, uint8_t minutes)
 {
 	char * strptr;
 	strptr=lcd_string;
@@ -455,37 +643,11 @@ void incub_menu_1(void)
 	{
 		*(strptr++)=0;
 	}
-	lcd_clear();
-	delay_ms(50);
-	lcd_put_cur(0, 0);
-	strcpy(lcd_string,"*Inkubacija*");
-	lcd_send_string(lcd_string);
-	delay_ms(50);
-	strptr=lcd_string;
-	while(*(strptr) !='\0')
-	{
-	  *(strptr++)=0;
-	}
-	lcd_put_cur(1, 0);
-	strcpy(lcd_string,"*Zapoceta*");
-	lcd_send_string(lcd_string);
-	delay_ms(50);
-	strptr=lcd_string;
-};
-void incub_menu_3(uint8_t days, uint8_t hours)
-{
-	char * strptr;
-	strptr=lcd_string;
-	while(*(strptr) !='\0')
-	{
-		*(strptr++)=0;
-	}
-	lcd_clear();
-	delay_ms(50);
-	lcd_put_cur(0, 0);
-	strcpy(lcd_string,"Vreme do kraja");
-	lcd_send_string(lcd_string);
-	delay_ms(50);
+
+	GLCD_TEXT_INIT();
+	glcd_clear_buffer();
+	glcd_tiny_draw_string(0,0,	"Vreme do kraja");
+
 	strptr=lcd_string;
 	while(*(strptr) !='\0')
 	{
@@ -499,7 +661,7 @@ void incub_menu_3(uint8_t days, uint8_t hours)
 	{
 		strptr++;
 	}
-	strcpy(strptr," Dana ");
+	strcpy(strptr," d ");
 	while(*(strptr) !='\0')
 	{
 		strptr++;
@@ -509,10 +671,24 @@ void incub_menu_3(uint8_t days, uint8_t hours)
 	{
 		strptr++;
 	}
-	strcpy(strptr," Sati");
+	strcpy(strptr," h ");
 	lcd_send_string(lcd_string);
 	delay_ms(50);
 	strptr=lcd_string;
+	while(*(strptr) !='\0')
+	{
+		strptr++;
+	}
+	itoa(minutes,strptr,10);
+	while(*(strptr) !='\0')
+	{
+		strptr++;
+	}
+	strcpy(strptr," m");
+	glcd_tiny_draw_string(0, 2,lcd_string);
+	glcd_bar_graph_horizontal(10,40,65,6,250);
+
+	glcd_write();
 };
 bool debouncingFunct(ulong debounceVal)
 {
@@ -549,15 +725,37 @@ bool debouncingFunct(ulong debounceVal)
 }
 void switchHold(ulong HoldTime)
 {
-	ulong StarTime_swH=millis();
-	ulong HoldTime_swH=HoldTime;
+
+	while(1)
+	{
+		ulong StarTime_swH=millis();
+		ulong HoldTime_swH=HoldTime;
 	if(0==((StarTime_swH+HoldTime_swH) % HoldTime))
 		{
-
+		return;
 		}
-
+	else
+	{
+		//do nothing
+	}
+	}
 
 }
+//Filter for averaging last 10 values recieved and return output values
+void filter_avg(float* inputVal, uint8_t size, float* outputVal)
+{
+
+	 float sum=0.0;				//variable for sum
+
+
+	for(int i=0;i<size;i++)
+	{
+			sum+=*(inputVal+i);
+	}
+	sum/=size;
+	*(outputVal)=sum;
+}
+
 /*void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance==TIM2) //check if the interrupt comes from TIM2
