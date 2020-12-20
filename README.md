@@ -9,7 +9,7 @@ This is the development of chicken egg incubator. The incubator will have temper
 - To have data about time, and exact elapsed time external realtime clock module DS3231 is interfaced via I2C bus.
 ### LCD Display implementation
 -User should see the temperature and humidity, and to have information about the time and date, and also about current
-incubation process time. For this intention LCD1602 Display was used. Communication is via I2C bus.
+incubation process time. For this intention Nokia 5110 Display was used. Communication is via SPI bus.
 ### Main MCU choice 
 - For this application stm32f407vgt6 MCU was chosen as a part of STM Discovery development board.
 ### Versioning implemented
