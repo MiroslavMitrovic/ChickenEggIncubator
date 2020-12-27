@@ -2,7 +2,7 @@
 
 This is the development of chicken egg incubator. The incubator will have temperature and humidity control in ways of heater and fan.
 ### Temperature and RH measurement
-- The temperature should be kept between 37.5 and 39 degC and relative humidity between 60 and 70 %. DHT12 sensor was chosen fortemperature and relative humidity measurements. Communication is via I2C bus.
+- The temperature should be kept between 37.5 and 39 degC and relative humidity between 60 and 70 %. BMP280 sensor was chosen fortemperature and relative humidity measurements. Communication is via I2C bus.
 ### Stepper motor control
 - Eggs will be turned for 19 days, each hour for one turn. The incubation process should take around 21 days. For precise turning stepper motor control will be implemented. 
 ### External RTC implementation
